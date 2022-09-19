@@ -41,3 +41,9 @@ static const GUID GUID_VendorPrsyahmi =
 
 
 void Log(const char* szFormat, ...);
+
+#ifdef _DEBUG
+#define DbgLog Log
+#else
+#define DbgLog
+#endif

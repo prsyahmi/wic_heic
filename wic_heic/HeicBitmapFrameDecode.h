@@ -6,6 +6,9 @@ private:
 	std::atomic<uint32_t> m_Count;
 	heif::ImageHandle m_Handle;
 	heif::Image m_Image;
+	int m_Bpp;
+	int m_Stride;
+	uint8_t* m_Plane;
 
 public:
 	CHeicBitmapFrameDecode(heif::ImageHandle handle);

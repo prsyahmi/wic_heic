@@ -6,10 +6,12 @@
 CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
 	: m_Count(1)
 	, m_Handle(handle)
+	, m_Bpp(0)
+	, m_Plane(nullptr)
 {
-	Log("decoding");
 	m_Image = handle.decode_image(heif_colorspace_RGB, heif_chroma_interleaved_24bit);
-	Log("decoded");
+	m_Bpp = m_Image.get_bits_per_pixel(heif_channel_interleaved);
+	m_Plane = m_Image.get_plane(heif_channel_interleaved, &m_Stride);
 }
 
 
@@ -117,21 +119,19 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const
 		rc = *prc;
 	}
 
-	int inStride;
-	int bpp = m_Image.get_bits_per_pixel(heif_channel_interleaved);
-	uint8_t* plane = m_Image.get_plane(heif_channel_interleaved, &inStride);
-	Log("CopyPixels: (X=%d,Y=%d,W=%d,H=%d), outStride=%u, inStride=%d",
+	DbgLog("CopyPixels: (X=%d,Y=%d,W=%d,H=%d), outStride=%u, inStride=%d",
 		rc.X, rc.Y, rc.Width, rc.Height,
-		cbStride, inStride);
+		cbStride, m_Stride);
 
-	plane += (inStride * rc.Y);
+	uint8_t* plane = m_Plane;
+	plane += (m_Stride * rc.Y);
 
 	uint8_t* out = pbBuffer;
 	for (int height = 0; height < rc.Height; height++)
 	{
-		memcpy_s(out, cbBufferSize, plane + (rc.X * bpp), cbStride);
+		memcpy_s(out, cbBufferSize, plane + (rc.X * m_Bpp), cbStride);
 		out += cbStride;
-		plane += inStride;
+		plane += m_Stride;
 	}
 
 	return S_OK;
@@ -149,5 +149,6 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetColorContexts(UINT cCount, 
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_opt IWICBitmapSource **ppIThumbnail)
 {
+
 	return WINCODEC_ERR_CODECNOTHUMBNAIL;
 }

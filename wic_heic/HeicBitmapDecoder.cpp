@@ -59,14 +59,12 @@ ULONG STDMETHODCALLTYPE CHeicBitmapDecoder::Release(void)
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::QueryCapability(__RPC__in_opt IStream *pIStream, __RPC__out DWORD *pdwCapability)
 {
-	OutputDebugStringA("QueryCapability\n");
 	// https://learn.microsoft.com/en-us/windows/win32/wic/-wic-imp-iwicbitmapdecoder
 	if (!pdwCapability) {
 		return E_INVALIDARG;
 	}
 
 	*pdwCapability = WICBitmapDecoderCapabilitySameEncoder;
-
 	return S_OK;
 }
 
@@ -77,7 +75,6 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::Initialize(__RPC__in_opt IStream *
 	{
 		m_Reader = new CHeifStreamReader(pIStream);
 		m_Context.read_from_reader(*m_Reader);
-		Log("Initialized");
 	}
 	catch (const std::exception& ex)
 	{
@@ -145,7 +142,6 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrame(UINT index, __RPC__deref_
 {
 	try
 	{
-		Log("GetFrame@1 (%u, %p)", index, ppIBitmapFrame);
 		if (index >= m_Context.get_number_of_top_level_images()) {
 			return WINCODEC_ERR_FRAMEMISSING;
 		}
@@ -156,13 +152,12 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrame(UINT index, __RPC__deref_
 
 		std::vector<heif_item_id> ids = m_Context.get_list_of_top_level_image_IDs();
 
-		Log("GetFrame@2");
 		heif::ImageHandle handle = m_Context.get_image_handle(ids[index]);
 		if (handle.empty()) {
 			return WINCODEC_ERR_FRAMEMISSING;
 		}
 
-		Log("GetFrame@handle: hasAlpha=%d, chromaBpp=%d, lumaBpp=%d, width=%d, height=%d, primary=%d",
+		DbgLog("GetFrame@handle: hasAlpha=%d, chromaBpp=%d, lumaBpp=%d, width=%d, height=%d, primary=%d",
 			handle.has_alpha_channel(),
 			handle.get_chroma_bits_per_pixel(),
 			handle.get_luma_bits_per_pixel(),
@@ -171,17 +166,13 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrame(UINT index, __RPC__deref_
 			handle.is_primary_image()
 		);
 
-		Log("GetFrame@3");
 		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(handle);
 		if (!decoder) {
 			return E_OUTOFMEMORY;
 		}
 
-		Log("GetFrame@4");
 		decoder->AddRef();
 		*ppIBitmapFrame = decoder;
-
-		Log("GetFrame@5");
 	}
 	catch (const heif::Error& ex)
 	{
