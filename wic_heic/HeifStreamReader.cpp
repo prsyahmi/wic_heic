@@ -27,7 +27,7 @@ int CHeifStreamReader::read(void* data, size_t size)
 	ULARGE_INTEGER uli;
 	ULONG nRead;
 	HRESULT hr = m_Stream->Read(data, static_cast<ULONG>(size), &nRead);
-	if (FAILED(hr)) {
+	if (FAILED(hr) || hr == S_FALSE) {
 		return -1;
 	}
 

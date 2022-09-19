@@ -73,6 +73,10 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::Initialize(__RPC__in_opt IStream *
 	// https://github.com/strukturag/libheif/issues/83
 	try
 	{
+		if (m_Reader) {
+			return WINCODEC_ERR_WRONGSTATE;
+		}
+
 		m_Reader = new CHeifStreamReader(pIStream);
 		m_Context.read_from_reader(*m_Reader);
 	}
@@ -115,7 +119,71 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetMetadataQueryReader(__RPC__dere
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetPreview(__RPC__deref_out_opt IWICBitmapSource **ppIBitmapSource)
 {
-	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
+	try
+	{
+		DbgLog("GetPreview@1");
+		int index = 0;
+
+		if (!m_Reader) {
+			return WINCODEC_ERR_WRONGSTATE;
+		}
+
+		if (index >= m_Context.get_number_of_top_level_images()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
+
+		if (!ppIBitmapSource) {
+			return E_INVALIDARG;
+		}
+
+		std::vector<heif_item_id> ids = m_Context.get_list_of_top_level_image_IDs();
+
+		heif::ImageHandle handle = m_Context.get_image_handle(ids[index]);
+		if (handle.empty()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
+
+		std::vector<heif_item_id> thumbIds = handle.get_list_of_thumbnail_IDs();
+		if (!thumbIds.size()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
+
+		heif::ImageHandle thumbHandle = handle.get_thumbnail(thumbIds[0]);
+
+		DbgLog("GetPreview@handle: hasAlpha=%d, chromaBpp=%d, lumaBpp=%d, width=%d, height=%d, primary=%d",
+			thumbHandle.has_alpha_channel(),
+			thumbHandle.get_chroma_bits_per_pixel(),
+			thumbHandle.get_luma_bits_per_pixel(),
+			thumbHandle.get_width(),
+			thumbHandle.get_height(),
+			thumbHandle.is_primary_image()
+		);
+
+		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(thumbHandle);
+		if (!decoder) {
+			return E_OUTOFMEMORY;
+		}
+
+		decoder->AddRef();
+		*ppIBitmapSource = decoder;
+	}
+	catch (const heif::Error& ex)
+	{
+		Log("GetPreview@Exception: %s", ex.get_message().c_str());
+		return E_INVALIDARG;
+	}
+	catch (const std::exception& ex)
+	{
+		Log("GetPreview@Exception: %s", ex.what());
+		return E_INVALIDARG;
+	}
+	catch (...)
+	{
+		Log("GetPreview@Exception: Unknown");
+		return E_INVALIDARG;
+	}
+
+	return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetColorContexts(UINT cCount, __RPC__inout_ecount_full_opt(cCount) IWICColorContext **ppIColorContexts, __RPC__out UINT *pcActualCount)
@@ -125,7 +193,71 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetColorContexts(UINT cCount, __RP
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetThumbnail(__RPC__deref_out_opt IWICBitmapSource **ppIThumbnail)
 {
-	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
+	try
+	{
+		DbgLog("GetThumbnail@1");
+		int index = 0;
+
+		if (!m_Reader) {
+			return WINCODEC_ERR_WRONGSTATE;
+		}
+
+		if (index >= m_Context.get_number_of_top_level_images()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
+
+		if (!ppIThumbnail) {
+			return E_INVALIDARG;
+		}
+
+		std::vector<heif_item_id> ids = m_Context.get_list_of_top_level_image_IDs();
+
+		heif::ImageHandle handle = m_Context.get_image_handle(ids[index]);
+		if (handle.empty()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
+
+		std::vector<heif_item_id> thumbIds = handle.get_list_of_thumbnail_IDs();
+		if (!thumbIds.size()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
+
+		heif::ImageHandle thumbHandle = handle.get_thumbnail(thumbIds[0]);
+
+		DbgLog("GetThumbnail@handle: hasAlpha=%d, chromaBpp=%d, lumaBpp=%d, width=%d, height=%d, primary=%d",
+			thumbHandle.has_alpha_channel(),
+			thumbHandle.get_chroma_bits_per_pixel(),
+			thumbHandle.get_luma_bits_per_pixel(),
+			thumbHandle.get_width(),
+			thumbHandle.get_height(),
+			thumbHandle.is_primary_image()
+		);
+
+		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(thumbHandle);
+		if (!decoder) {
+			return E_OUTOFMEMORY;
+		}
+
+		decoder->AddRef();
+		*ppIThumbnail = decoder;
+	}
+	catch (const heif::Error& ex)
+	{
+		Log("GetThumbnail@Exception: %s", ex.get_message().c_str());
+		return E_INVALIDARG;
+	}
+	catch (const std::exception& ex)
+	{
+		Log("GetThumbnail@Exception: %s", ex.what());
+		return E_INVALIDARG;
+	}
+	catch (...)
+	{
+		Log("GetThumbnail@Exception: Unknown");
+		return E_INVALIDARG;
+	}
+
+	return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrameCount(__RPC__out UINT *pCount)

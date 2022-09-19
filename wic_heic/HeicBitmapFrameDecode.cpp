@@ -9,7 +9,7 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
 	, m_Bpp(0)
 	, m_Plane(nullptr)
 {
-	m_Image = handle.decode_image(heif_colorspace_RGB, heif_chroma_interleaved_24bit);
+	m_Image = handle.decode_image(heif_colorspace_RGB, heif_chroma_interleaved_RGB);
 	m_Bpp = m_Image.get_bits_per_pixel(heif_channel_interleaved);
 	m_Plane = m_Image.get_plane(heif_channel_interleaved, &m_Stride);
 }
@@ -149,6 +149,54 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetColorContexts(UINT cCount, 
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_opt IWICBitmapSource **ppIThumbnail)
 {
+	try
+	{
+		DbgLog("Frame::GetThumbnail@1");
+		int index = 0;
 
-	return WINCODEC_ERR_CODECNOTHUMBNAIL;
+		if (!ppIThumbnail) {
+			return E_INVALIDARG;
+		}
+
+		std::vector<heif_item_id> ids = m_Handle.get_list_of_thumbnail_IDs();
+
+		heif::ImageHandle thumbHandle = m_Handle.get_thumbnail(ids[index]);
+		if (thumbHandle.empty()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
+
+		DbgLog("GetThumbnail@handle: hasAlpha=%d, chromaBpp=%d, lumaBpp=%d, width=%d, height=%d, primary=%d",
+			thumbHandle.has_alpha_channel(),
+			thumbHandle.get_chroma_bits_per_pixel(),
+			thumbHandle.get_luma_bits_per_pixel(),
+			thumbHandle.get_width(),
+			thumbHandle.get_height(),
+			thumbHandle.is_primary_image()
+		);
+
+		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(thumbHandle);
+		if (!decoder) {
+			return E_OUTOFMEMORY;
+		}
+
+		decoder->AddRef();
+		*ppIThumbnail = decoder;
+	}
+	catch (const heif::Error& ex)
+	{
+		Log("GetThumbnail@Exception: %s", ex.get_message().c_str());
+		return E_INVALIDARG;
+	}
+	catch (const std::exception& ex)
+	{
+		Log("GetThumbnail@Exception: %s", ex.what());
+		return E_INVALIDARG;
+	}
+	catch (...)
+	{
+		Log("GetThumbnail@Exception: Unknown");
+		return E_INVALIDARG;
+	}
+
+	return S_OK;
 }
