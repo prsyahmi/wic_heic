@@ -8,10 +8,16 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
 	, m_Handle(handle)
 	, m_Bpp(0)
 	, m_Plane(nullptr)
+	, m_Stride(0)
 {
+	// Set both to undefined to use original one
 	m_Image = handle.decode_image(heif_colorspace_RGB, heif_chroma_interleaved_RGB);
 	m_Bpp = m_Image.get_bits_per_pixel(heif_channel_interleaved);
 	m_Plane = m_Image.get_plane(heif_channel_interleaved, &m_Stride);
+
+	if (!m_Plane || !m_Stride) {
+		throw std::exception("Unable to get plane");
+	}
 }
 
 
@@ -78,10 +84,47 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetPixelFormat(__RPC__out WICP
 		return E_INVALIDARG;
 	}
 
-	m_Handle.has_alpha_channel();
-	// GUID_WICPixelFormat24bppRGB
-	// GUID_WICPixelFormat32bppR10G10B10A2HDR10
-	*pPixelFormat = GUID_WICPixelFormat24bppRGB;
+	heif_chroma cformat = m_Image.get_chroma_format();
+	DbgLog("GetPixelFormat: %d", cformat);
+
+	switch (cformat)
+	{
+	case heif_chroma_monochrome:
+		// I'm unsure about this... Does heif_chroma_monochrome has fixed BPP?
+		if (m_Bpp == 1) {
+			*pPixelFormat = GUID_WICPixelFormatBlackWhite;
+		} else if (m_Bpp == 2) {
+			*pPixelFormat = GUID_WICPixelFormat2bppGray;
+		} else if (m_Bpp == 4) {
+			*pPixelFormat = GUID_WICPixelFormat4bppGray;
+		} else if (m_Bpp == 8) {
+			*pPixelFormat = GUID_WICPixelFormat8bppGray;
+		}
+		break;
+	case heif_chroma_420:
+	case heif_chroma_422:
+	case heif_chroma_444:
+		//*pPixelFormat = ;
+		break;
+	case heif_chroma_interleaved_RGB:
+		*pPixelFormat = GUID_WICPixelFormat24bppRGB;
+		break;
+	case heif_chroma_interleaved_RGBA:
+		*pPixelFormat = GUID_WICPixelFormat32bppRGBA;
+		break;
+	case heif_chroma_interleaved_RRGGBB_BE:
+		*pPixelFormat = GUID_WICPixelFormat48bppBGR;
+		break;
+	case heif_chroma_interleaved_RRGGBB_LE:
+		*pPixelFormat = GUID_WICPixelFormat48bppRGB;
+		break;
+	case heif_chroma_interleaved_RRGGBBAA_BE:
+		*pPixelFormat = GUID_WICPixelFormat64bppBGRA;
+		break;
+	case heif_chroma_interleaved_RRGGBBAA_LE:
+		*pPixelFormat = GUID_WICPixelFormat64bppRGBA;
+		break;
+	}
 
 	return S_OK;
 }
