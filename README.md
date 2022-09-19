@@ -1,5 +1,7 @@
 # Windows Imaging Component for HEIC file
 
+This software uses libheif (https://github.com/strukturag/libheif)
+
 ### How to build
 
 #### Requirements:
