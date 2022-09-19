@@ -15,6 +15,7 @@ This software uses libheif (https://github.com/strukturag/libheif)
 
 ### Installation:
 - For now there is no installer
+- Download dll file from here: https://github.com/prsyahmi/wic_heic/releases
 - Copy *.dll files into folder of your choice
 - Open command as admin
 - Execute `_install.bat` or by directly `regsvr32.exe wic_heic.dll`
