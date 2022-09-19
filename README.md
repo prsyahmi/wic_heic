@@ -1,5 +1,5 @@
 # Windows Imaging Component for HEIC file
-
+This software add support to open heic files in windows or other software like IrfanView.  
 This software uses libheif (https://github.com/strukturag/libheif)
 
 ### How to build
