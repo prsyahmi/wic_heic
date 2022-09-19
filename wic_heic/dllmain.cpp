@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "wic_heic.h"
 #include "ComFactory.h"
+#include "ComCounter.h"
 #include "UtlReg.h"
 
 #if defined(X86)
@@ -241,5 +242,10 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppvObj)
 
 STDAPI DllCanUnloadNow()
 {
-	return 0;
+	CComCounter& counter = CComCounter::GetInstance();
+	if (counter.m_ObjLock == 0 && counter.m_ServerLock == 0) {
+		return S_OK;
+	}
+
+	return S_FALSE;
 }

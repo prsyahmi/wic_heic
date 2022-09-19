@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "wic_heic.h"
 #include "ComFactory.h"
+#include "ComCounter.h"
 #include "HeifStreamReader.h"
 #include "HeicBitmapDecoder.h"
 
@@ -8,11 +9,13 @@
 CComFactory::CComFactory()
 	: m_Count(1)
 {
+	CComCounter::GetInstance().m_ObjLock++;
 }
 
 
 CComFactory::~CComFactory()
 {
+	CComCounter::GetInstance().m_ObjLock--;
 }
 
 ULONG STDMETHODCALLTYPE CComFactory::AddRef(void)
@@ -84,5 +87,11 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 
 HRESULT STDMETHODCALLTYPE CComFactory::LockServer(BOOL fLock)
 {
+	if (fLock) {
+		CComCounter::GetInstance().m_ServerLock++;
+	} else {
+		CComCounter::GetInstance().m_ServerLock--;
+	}
+
 	return CoLockObjectExternal(this, fLock, TRUE);
 }

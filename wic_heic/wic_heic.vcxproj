@@ -161,6 +161,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ComCounter.h" />
     <ClInclude Include="ComFactory.h" />
     <ClInclude Include="HeicBitmapDecoder.h" />
     <ClInclude Include="HeicBitmapFrameDecode.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="wic_heic.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ComCounter.cpp" />
     <ClCompile Include="ComFactory.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
