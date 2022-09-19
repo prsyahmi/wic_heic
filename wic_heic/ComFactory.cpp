@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include "wic_heic.h"
 #include "ComFactory.h"
+#include "HeifStreamReader.h"
 #include "HeicBitmapDecoder.h"
 
 
 CComFactory::CComFactory()
-	: m_Count(0)
+	: m_Count(1)
 {
 }
 
@@ -76,10 +77,6 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 		}
 	} else {
 		hr = E_NOINTERFACE;
-	}
-
-	if (SUCCEEDED(hr)) {
-		AddRef();
 	}
 
 	return hr;

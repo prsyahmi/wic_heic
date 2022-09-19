@@ -5,6 +5,7 @@ class CHeicBitmapDecoder : public IWICBitmapDecoder
 private:
 	std::atomic<uint32_t> m_Count;
 	heif::Context m_Context;
+	CHeifStreamReader* m_Reader;
 
 public:
 	CHeicBitmapDecoder();

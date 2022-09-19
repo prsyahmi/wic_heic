@@ -5,6 +5,7 @@ class CHeicBitmapFrameDecode : public IWICBitmapFrameDecode
 private:
 	std::atomic<uint32_t> m_Count;
 	heif::ImageHandle m_Handle;
+	heif::Image m_Image;
 
 public:
 	CHeicBitmapFrameDecode(heif::ImageHandle handle);

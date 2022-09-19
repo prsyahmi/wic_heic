@@ -4,9 +4,12 @@
 
 
 CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
-	: m_Count(0)
+	: m_Count(1)
 	, m_Handle(handle)
 {
+	Log("decoding");
+	m_Image = handle.decode_image(heif_colorspace_RGB, heif_chroma_interleaved_24bit);
+	Log("decoded");
 }
 
 
@@ -102,6 +105,33 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const
 {
 	if (!pbBuffer) {
 		return E_INVALIDARG;
+	}
+
+	WICRect rc;
+	rc.X = 0;
+	rc.Y = 0;
+	rc.Width = m_Handle.get_width();
+	rc.Height = m_Handle.get_height();
+
+	if (prc) {
+		rc = *prc;
+	}
+
+	int inStride;
+	int bpp = m_Image.get_bits_per_pixel(heif_channel_interleaved);
+	uint8_t* plane = m_Image.get_plane(heif_channel_interleaved, &inStride);
+	Log("CopyPixels: (X=%d,Y=%d,W=%d,H=%d), outStride=%u, inStride=%d",
+		rc.X, rc.Y, rc.Width, rc.Height,
+		cbStride, inStride);
+
+	plane += (inStride * rc.Y);
+
+	uint8_t* out = pbBuffer;
+	for (int height = 0; height < rc.Height; height++)
+	{
+		memcpy_s(out, cbBufferSize, plane + (rc.X * bpp), cbStride);
+		out += cbStride;
+		plane += inStride;
 	}
 
 	return S_OK;

@@ -54,7 +54,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppvObj)
 
 	*ppvObj = NULL;
 
-	if (IsEqualCLSID(rclsid, CLSID_WICImagingFactory)) {
+	if (IsEqualCLSID(rclsid, CLSID_HEICDecoder)) {
 		CComFactory *pClassFactory = new CComFactory();
 		if (pClassFactory)
 		{

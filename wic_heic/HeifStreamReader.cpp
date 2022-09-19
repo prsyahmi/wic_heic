@@ -18,6 +18,7 @@ CHeifStreamReader::~CHeifStreamReader()
 
 int64_t CHeifStreamReader::get_position() const
 {
+	Log("CHeifStreamReader::get_position() -> %zu", m_LastPos);
 	return m_LastPos;
 }
 
@@ -27,7 +28,7 @@ int CHeifStreamReader::read(void* data, size_t size)
 	ULONG nRead;
 	HRESULT hr = m_Stream->Read(data, static_cast<ULONG>(size), &nRead);
 	if (FAILED(hr)) {
-		return 1;
+		return -1;
 	}
 
 	hr = m_Stream->Seek({ 0 }, STREAM_SEEK_CUR, &uli);
@@ -36,6 +37,7 @@ int CHeifStreamReader::read(void* data, size_t size)
 	} else {
 		m_LastPos += nRead;
 	}
+	Log("CHeifStreamReader::read(readSize=%zu) -> totalRead=%zu, lastPos=%zu", size, nRead, m_LastPos);
 
 	return 0;
 }
@@ -47,8 +49,9 @@ int CHeifStreamReader::seek(int64_t position)
 	li.QuadPart = position;
 
 	HRESULT hr = m_Stream->Seek(li, STREAM_SEEK_SET, &uli);
+	Log("CHeifStreamReader::seek(%lld) -> %lld", position, uli.QuadPart);
 	if (FAILED(hr)) {
-		return 1;
+		return -1;
 	}
 
 	m_LastPos = static_cast<int64_t>(uli.QuadPart);
@@ -57,5 +60,6 @@ int CHeifStreamReader::seek(int64_t position)
 
 heif_reader_grow_status CHeifStreamReader::wait_for_file_size(int64_t target_size)
 {
+	Log("CHeifStreamReader::wait_for_file_size()");
 	return heif_reader_grow_status_size_reached;
 }

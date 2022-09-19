@@ -1,17 +1,21 @@
 #include "stdafx.h"
 #include "wic_heic.h"
-#include "HeicBitmapDecoder.h"
 #include "HeifStreamReader.h"
+#include "HeicBitmapDecoder.h"
 #include "HeicBitmapFrameDecode.h"
 
 CHeicBitmapDecoder::CHeicBitmapDecoder()
-	: m_Count(0)
+	: m_Count(1)
+	, m_Reader(nullptr)
 {
 }
 
 
 CHeicBitmapDecoder::~CHeicBitmapDecoder()
 {
+	if (m_Reader) {
+		delete m_Reader;
+	}
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::QueryInterface(REFIID riid, void **ppvObject)
@@ -55,8 +59,15 @@ ULONG STDMETHODCALLTYPE CHeicBitmapDecoder::Release(void)
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::QueryCapability(__RPC__in_opt IStream *pIStream, __RPC__out DWORD *pdwCapability)
 {
+	OutputDebugStringA("QueryCapability\n");
 	// https://learn.microsoft.com/en-us/windows/win32/wic/-wic-imp-iwicbitmapdecoder
-	return WICBitmapDecoderCapabilityCanDecodeSomeImages;
+	if (!pdwCapability) {
+		return E_INVALIDARG;
+	}
+
+	*pdwCapability = WICBitmapDecoderCapabilitySameEncoder;
+
+	return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::Initialize(__RPC__in_opt IStream *pIStream, WICDecodeOptions cacheOptions)
@@ -64,8 +75,9 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::Initialize(__RPC__in_opt IStream *
 	// https://github.com/strukturag/libheif/issues/83
 	try
 	{
-		CHeifStreamReader reader(pIStream);
-		m_Context.read_from_reader(reader);
+		m_Reader = new CHeifStreamReader(pIStream);
+		m_Context.read_from_reader(*m_Reader);
+		Log("Initialized");
 	}
 	catch (const std::exception& ex)
 	{
@@ -131,26 +143,60 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrameCount(__RPC__out UINT *pCo
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrame(UINT index, __RPC__deref_out_opt IWICBitmapFrameDecode **ppIBitmapFrame)
 {
-	if (index >= m_Context.get_number_of_top_level_images()) {
-		return WINCODEC_ERR_FRAMEMISSING;
-	}
+	try
+	{
+		Log("GetFrame@1 (%u, %p)", index, ppIBitmapFrame);
+		if (index >= m_Context.get_number_of_top_level_images()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
 
-	if (!ppIBitmapFrame) {
+		if (!ppIBitmapFrame) {
+			return E_INVALIDARG;
+		}
+
+		std::vector<heif_item_id> ids = m_Context.get_list_of_top_level_image_IDs();
+
+		Log("GetFrame@2");
+		heif::ImageHandle handle = m_Context.get_image_handle(ids[index]);
+		if (handle.empty()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
+
+		Log("GetFrame@handle: hasAlpha=%d, chromaBpp=%d, lumaBpp=%d, width=%d, height=%d, primary=%d",
+			handle.has_alpha_channel(),
+			handle.get_chroma_bits_per_pixel(),
+			handle.get_luma_bits_per_pixel(),
+			handle.get_width(),
+			handle.get_height(),
+			handle.is_primary_image()
+		);
+
+		Log("GetFrame@3");
+		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(handle);
+		if (!decoder) {
+			return E_OUTOFMEMORY;
+		}
+
+		Log("GetFrame@4");
+		decoder->AddRef();
+		*ppIBitmapFrame = decoder;
+
+		Log("GetFrame@5");
+	}
+	catch (const heif::Error& ex)
+	{
+		Log("GetFrame@Exception: %s", ex.get_message().c_str());
 		return E_INVALIDARG;
 	}
-
-	heif::ImageHandle handle = m_Context.get_image_handle(index);
-	if (handle.empty()) {
-		return WINCODEC_ERR_FRAMEMISSING;
+	catch (const std::exception& ex)
+	{
+		Log("GetFrame@Exception: %s", ex.what());
+		return E_INVALIDARG;
 	}
-
-	CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(handle);
-	if (!decoder) {
-		return E_OUTOFMEMORY;
+	catch (...)
+	{
+		Log("GetFrame@Exception: Unknown");
+		return E_INVALIDARG;
 	}
-
-	decoder->AddRef();
-	*ppIBitmapFrame = decoder;
-
 	return S_OK;
 }

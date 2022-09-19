@@ -2,10 +2,10 @@
 setlocal
 
 rem Usage:
-rem   build-libheif x86
-rem   build-libheif x64
-rem   build-libheif x86 xp
-rem   build-libheif x64 xp
+rem   build-libde265 x86
+rem   build-libde265 x64
+rem   build-libde265 x86 xp
+rem   build-libde265 x64 xp
 
 set B_TMP=%1
 set B_OUT=%~dp0_out\%1
@@ -15,11 +15,13 @@ if "%2"=="xp" set B_OUT=%~dp0_out_xp\%1
 if "%2"=="xp" set B_EXTRA=-T "v140_xp" -DCMAKE_CXX_FLAGS="/DWIN32 /D_WINDOWS /W3 /GR /EHsc /Zc:threadSafeInit-"
 if "%2"=="xp" set B_TMP=%1-xp
 
+copy libde265\extra\libde265\de265-version.h libde265\libde265
+
 call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" %1
-md _tmp\libheif 2> nul
-md _tmp\libheif\%B_TMP% 2> nul
-cd _tmp\libheif\%B_TMP%
-cmake %B_EXTRA% -G "%B_VC%" -DCMAKE_INSTALL_PREFIX="%B_OUT%" -DBUILD_SHARED_LIBS=1 -DLIBDE265_INCLUDE_DIR="%B_OUT%\include" -DLIBDE265_LIBRARY="%B_OUT%\lib\libde265.lib" ..\..\..\libheif
+md _tmp\libde265 2> nul
+md _tmp\libde265\%B_TMP% 2> nul
+cd _tmp\libde265\%B_TMP%
+cmake %B_EXTRA% -G "%B_VC%" -DCMAKE_INSTALL_PREFIX="%B_OUT%" -DBUILD_SHARED_LIBS=1 ..\..\..\libde265
 
 cmake --build . --target install --config RelWithDebInfo
 cmake --build . --config Debug
