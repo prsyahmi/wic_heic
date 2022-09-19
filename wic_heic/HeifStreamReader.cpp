@@ -27,12 +27,12 @@ int CHeifStreamReader::read(void* data, size_t size)
 	ULARGE_INTEGER uli;
 	ULONG nRead;
 	HRESULT hr = m_Stream->Read(data, static_cast<ULONG>(size), &nRead);
-	if (FAILED(hr) || hr == S_FALSE) {
+	if (hr != S_OK) {
 		return -1;
 	}
 
 	hr = m_Stream->Seek({ 0 }, STREAM_SEEK_CUR, &uli);
-	if (SUCCEEDED(hr)) {
+	if (hr != S_OK) {
 		m_LastPos = static_cast<int64_t>(uli.QuadPart);
 	} else {
 		m_LastPos += nRead;
@@ -50,7 +50,7 @@ int CHeifStreamReader::seek(int64_t position)
 
 	HRESULT hr = m_Stream->Seek(li, STREAM_SEEK_SET, &uli);
 	DbgLog("CHeifStreamReader::seek(%lld) -> %lld", position, uli.QuadPart);
-	if (FAILED(hr)) {
+	if (hr != S_OK) {
 		return -1;
 	}
 
