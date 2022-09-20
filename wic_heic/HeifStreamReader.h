@@ -5,6 +5,7 @@ class CHeifStreamReader : public heif::Context::Reader
 private:
 	IStream* m_Stream;
 	int64_t m_LastPos;
+	uint64_t m_Size;
 
 public:
 	CHeifStreamReader(IStream* stream);

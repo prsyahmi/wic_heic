@@ -16,3 +16,4 @@ ipch
 *.VC.db
 *.opendb
 *.pdb
+out-*.heic

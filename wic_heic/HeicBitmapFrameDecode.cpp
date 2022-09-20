@@ -172,7 +172,8 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const
 	uint8_t* out = pbBuffer;
 	for (int height = 0; height < rc.Height; height++)
 	{
-		memcpy_s(out, cbBufferSize, plane + (rc.X * m_Bpp), cbStride);
+		uint8_t offsetX = rc.X * m_Bpp;
+		memcpy_s(out, cbBufferSize - offsetX, plane + offsetX, cbStride - offsetX);
 		out += cbStride;
 		plane += m_Stride;
 	}

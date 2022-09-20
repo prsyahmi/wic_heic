@@ -21,7 +21,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
                        LPVOID lpReserved
 					 )
 {
-	Log("DllMain");
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
@@ -34,6 +33,138 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		break;
 	}
 	return TRUE;
+}
+
+HRESULT RegisterEncoder()
+{
+	// TODO: Rewrite this, this is a lazy way - no error checking, cleanup, transaction, etc
+	// Requires Admin rights
+
+	LSTATUS status;
+	HKEY hInstance;
+	HKEY hEncoder;
+	HKEY hInProc;
+	HKEY hFormat;
+
+	status = RegCreateKeyExA(
+		HKEY_CLASSES_ROOT,
+		"CLSID\\{AC757296-3522-4E11-9862-C17BE5A1767E}\\Instance\\" S_CLSID_HEICEncoder,
+		0,
+		NULL,
+		REG_OPTION_NON_VOLATILE,
+		KEY_ALL_ACCESS,
+		NULL,
+		&hInstance,
+		NULL);
+
+	if (status != ERROR_SUCCESS) {
+		Log("Unable to create key for WIC %X", status);
+		return MAKE_HRESULT(0, 0, status);
+	}
+
+	const char ClsidEncoder[] = S_CLSID_HEICEncoder;
+	const char FriendlyName[] = "HEIC Encoder";
+	RegSetValueExA(hInstance, "CLSID", 0, REG_SZ, (BYTE*)ClsidEncoder, sizeof(ClsidEncoder));
+	RegSetValueExA(hInstance, "FriendlyName", 0, REG_SZ, (BYTE*)FriendlyName, sizeof(FriendlyName));
+
+	RegCloseKey(hInstance);
+
+	status = RegCreateKeyExA(
+		HKEY_CLASSES_ROOT,
+		"CLSID\\" S_CLSID_HEICEncoder,
+		0,
+		NULL,
+		REG_OPTION_NON_VOLATILE,
+		KEY_ALL_ACCESS,
+		NULL,
+		&hEncoder,
+		NULL);
+
+	if (status != ERROR_SUCCESS)
+	{
+		Log("Unable to create key for HEIC Encoder %X", status);
+		return MAKE_HRESULT(0, 0, status);
+	}
+	else
+	{
+		DWORD dw;
+
+		dw = 0;
+		RegSetValueExA(hEncoder, "ArbitrationPriority", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
+		dw = 0;
+		RegSetValueExA(hEncoder, "SupportAnimation", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
+		dw = 0;
+		RegSetValueExA(hEncoder, "SupportChromaKey", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
+		dw = 0;
+		RegSetValueExA(hEncoder, "SupportLossless", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
+		dw = 1;
+		RegSetValueExA(hEncoder, "SupportMultiframe", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
+
+		const BYTE Author[] = "prsyahmi@github";
+		const BYTE ContainerFormat[] = S_GUID_ContainerFormatHEIC;
+		const BYTE Description[] = "HEIC Image Encoder";
+		const BYTE FriendlyName[] = "HEIC Image Encoder";
+		const BYTE FileExtensions[] = ".heic";
+		const BYTE MimeTypes[] = "image/heic";
+		const BYTE SpecVersion[] = "1.0.0.0";
+		const BYTE Vendor[] = S_GUID_VendorPrsyahmi;
+		const BYTE Version[] = "1.0.0.0";
+		RegSetValueExA(hEncoder, "Author", 0, REG_SZ, Author, sizeof(Author));
+		RegSetValueExA(hEncoder, "ContainerFormat", 0, REG_SZ, ContainerFormat, sizeof(ContainerFormat));
+		RegSetValueExA(hEncoder, "Description", 0, REG_SZ, Description, sizeof(Description));
+		RegSetValueExA(hEncoder, "FriendlyName", 0, REG_SZ, FriendlyName, sizeof(FriendlyName));
+		RegSetValueExA(hEncoder, "FileExtensions", 0, REG_SZ, FileExtensions, sizeof(FileExtensions));
+		RegSetValueExA(hEncoder, "MimeTypes", 0, REG_SZ, MimeTypes, sizeof(MimeTypes));
+		RegSetValueExA(hEncoder, "SpecVersion", 0, REG_SZ, SpecVersion, sizeof(SpecVersion));
+		RegSetValueExA(hEncoder, "Vendor", 0, REG_SZ, Vendor, sizeof(Vendor));
+		RegSetValueExA(hEncoder, "Version", 0, REG_SZ, Version, sizeof(Version));
+	}
+
+	RegCloseKey(hEncoder);
+
+	status = RegCreateKeyExA(
+		HKEY_CLASSES_ROOT,
+		"CLSID\\" S_CLSID_HEICEncoder "\\InprocServer32",
+		0,
+		NULL,
+		REG_OPTION_NON_VOLATILE,
+		KEY_ALL_ACCESS,
+		NULL,
+		&hInProc,
+		NULL);
+
+	if (status == ERROR_SUCCESS) {
+		std::wstring s;
+
+		DWORD copied = 0;
+		do {
+			s.resize(s.size() + MAX_PATH);
+			copied = GetModuleFileName(GModule, &s[0], (DWORD)s.size());
+		} while (copied >= s.size());
+		s.resize(copied);
+
+		Log("Registering at %ws", s.c_str());
+
+		const char Both[] = "Both";
+		RegSetValueExW(hInProc, L"", 0, REG_SZ, (BYTE*)s.c_str(), (DWORD)(s.size() * sizeof(WCHAR)));
+		RegSetValueExA(hInProc, "ThreadingModel", 0, REG_SZ, (BYTE*)Both, sizeof(Both));
+	}
+
+	// Let's support GUID_WICPixelFormat24bppRGB only
+
+	status = RegCreateKeyExA(
+		HKEY_CLASSES_ROOT,
+		"CLSID\\" S_CLSID_HEICEncoder "\\Formats\\{6fddc324-4e03-4bfe-b185-3d77768dc90d}",
+		0,
+		NULL,
+		REG_OPTION_NON_VOLATILE,
+		KEY_ALL_ACCESS,
+		NULL,
+		&hFormat,
+		NULL);
+	RegCloseKey(hFormat);
+
+	return S_OK;
 }
 
 STDAPI DllRegisterServer()
@@ -195,6 +326,8 @@ STDAPI DllRegisterServer()
 		RegCloseKey(hPatterns);
 	}
 
+	RegisterEncoder();
+
 	SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 	return S_OK;
 }
@@ -222,7 +355,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppvObj)
 
 	*ppvObj = NULL;
 
-	if (IsEqualCLSID(rclsid, CLSID_HEICDecoder)) {
+	if (IsEqualCLSID(rclsid, CLSID_HEICDecoder) || IsEqualCLSID(rclsid, CLSID_HEICEncoder)) {
 		CComFactory *pClassFactory = new CComFactory();
 		if (pClassFactory)
 		{

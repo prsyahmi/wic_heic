@@ -17,4 +17,18 @@
 #include <cstdint>
 #include <atomic>
 
+#pragma warning(push)
+#pragma warning(disable: 4800)
+#define LIBHEIF_STATIC_BUILD
+#include <libheif/heif_cxx.h>
+#pragma warning(pop)
+
 #pragma comment (lib, "windowscodecs.lib")
+
+void Log(const char* szFormat, ...);
+
+#ifdef _DEBUG
+#define DbgLog Log
+#else
+#define DbgLog
+#endif

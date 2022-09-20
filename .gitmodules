@@ -4,3 +4,6 @@
 [submodule "wic_heic/3rdparty/libde265"]
 	path = wic_heic/3rdparty/libde265
 	url = https://github.com/strukturag/libde265.git
+[submodule "wic_heic/3rdparty/x265"]
+	path = wic_heic/3rdparty/x265
+	url = https://github.com/videolan/x265.git

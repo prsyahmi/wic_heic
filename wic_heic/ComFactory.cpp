@@ -3,7 +3,9 @@
 #include "ComFactory.h"
 #include "ComCounter.h"
 #include "HeifStreamReader.h"
+#include "HeicBitmapFrameEncode.h"
 #include "HeicBitmapDecoder.h"
+#include "HeicBitmapEncoder.h"
 
 
 CComFactory::CComFactory()
@@ -74,6 +76,18 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 
 		hr = decoder->QueryInterface(riid, ppvObject);
 		decoder->Release();
+
+		if (FAILED(hr)) {
+			return hr;
+		}
+	} else if (IsEqualGUID(riid, IID_IWICBitmapEncoder)) {
+		CHeicBitmapEncoder* encoder = new(std::nothrow) CHeicBitmapEncoder();
+		if (!encoder) {
+			return E_OUTOFMEMORY;
+		}
+
+		hr = encoder->QueryInterface(riid, ppvObject);
+		encoder->Release();
 
 		if (FAILED(hr)) {
 			return hr;

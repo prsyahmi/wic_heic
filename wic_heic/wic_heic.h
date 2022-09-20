@@ -10,12 +10,6 @@
 #define WIC_API __declspec(dllimport)
 #endif
 
-#pragma warning(push)
-#pragma warning(disable: 4800)
-#define LIBHEIF_STATIC_BUILD
-#include <libheif/heif_cxx.h>
-#pragma warning(pop)
-
 // CLSID HEIC DECODER
 // {6215667c-74ca-4076-a769-3f834c3f25f5}
 #define S_CLSID_HEICDecoder "{6215667c-74ca-4076-a769-3f834c3f25f5}"
@@ -43,11 +37,3 @@ static const GUID GUID_ContainerFormatHEIC =
 static const GUID GUID_VendorPrsyahmi =
 { 0xd01102c8, 0x6108, 0x41dd,{ 0xbd, 0x60, 0x1f, 0x3a, 0x8e, 0x7f, 0x24, 0x47 } };
 
-
-void Log(const char* szFormat, ...);
-
-#ifdef _DEBUG
-#define DbgLog Log
-#else
-#define DbgLog
-#endif
