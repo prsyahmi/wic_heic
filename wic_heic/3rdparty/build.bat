@@ -19,6 +19,8 @@ md _out_xp\x64\pdb 2> nul
 
 call build-libde265 x86
 call build-libde265 x64
+call build-x265 x86
+call build-x265 x64
 call build-libheif x86
 call build-libheif x64
 rem call build-libheif x86 xp
