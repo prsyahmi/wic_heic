@@ -5,6 +5,8 @@
 #include "wic_heic.h"
 
 #pragma comment (lib, "heif.lib")
+#pragma comment (lib, "libde265.lib")
+#pragma comment (lib, "x265-static.lib")
 
 void Log(const char* szFormat, ...)
 {
