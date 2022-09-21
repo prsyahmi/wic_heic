@@ -7,6 +7,7 @@ This software uses libheif (https://github.com/strukturag/libheif)
 #### Requirements:
 - CMake
 - Visual Studio C++ Compiler v14
+- nasm
 
 #### Steps:
 - Build 3rd party component (`wic_heic\3rdparty\build.bat`)
