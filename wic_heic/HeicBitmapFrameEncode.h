@@ -1,5 +1,6 @@
 #pragma once
 
+// TODO: Support IWICPlanarBitmapFrameEncode
 class CHeicBitmapFrameEncode : public IWICBitmapFrameEncode
 {
 private:
@@ -11,6 +12,7 @@ private:
 	heif_colorspace m_Colorspace;
 	bool m_Created;
 	WICPixelFormatGUID m_PixelFormat;
+	int m_BitDepthPerChannel;
 
 protected:
 	heif::Image m_Frame;

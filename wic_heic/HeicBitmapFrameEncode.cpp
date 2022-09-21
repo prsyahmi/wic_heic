@@ -10,6 +10,7 @@ CHeicBitmapFrameEncode::CHeicBitmapFrameEncode()
 	, m_Chroma(heif_chroma_undefined)
 	, m_Colorspace(heif_colorspace_RGB)
 	, m_Created(false)
+	, m_BitDepthPerChannel(8)
 {
 }
 
@@ -83,35 +84,49 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::SetPixelFormat(__RPC__inout WI
 	if (IsEqualGUID(*pPixelFormat, GUID_WICPixelFormat24bppRGB)) {
 		m_PixelFormat = *pPixelFormat;
 		m_Chroma = heif_chroma_interleaved_RGB;
+		m_BitDepthPerChannel = 8;
 	}
 	else if (IsEqualGUID(*pPixelFormat, GUID_WICPixelFormat24bppBGR)) {
 		m_PixelFormat = GUID_WICPixelFormat24bppRGB;
 		m_Chroma = heif_chroma_interleaved_RGB;
+		m_BitDepthPerChannel = 8;
 	}
 	else if (IsEqualGUID(*pPixelFormat, GUID_WICPixelFormat32bppRGBA)) {
 		m_PixelFormat = *pPixelFormat;
 		m_Chroma = heif_chroma_interleaved_RGBA;
+		m_BitDepthPerChannel = 8;
 	}
+	else if (IsEqualGUID(*pPixelFormat, GUID_WICPixelFormat32bppBGRA)) {
+		m_PixelFormat = GUID_WICPixelFormat32bppRGBA;
+		m_Chroma = heif_chroma_interleaved_RGBA;
+		m_BitDepthPerChannel = 8;
+	}
+	// All below is not tested - not supported
 	else if (IsEqualGUID(*pPixelFormat, GUID_WICPixelFormat48bppBGR)) {
-		m_PixelFormat = *pPixelFormat;
+		m_PixelFormat = GUID_WICPixelFormat32bppRGBA1010102;
 		m_Chroma = heif_chroma_interleaved_RRGGBB_BE;
+		m_BitDepthPerChannel = 16;
 	}
 	else if (IsEqualGUID(*pPixelFormat, GUID_WICPixelFormat48bppRGB)) {
-		m_PixelFormat = *pPixelFormat;
+		m_PixelFormat = GUID_WICPixelFormat32bppRGBA1010102;
 		m_Chroma = heif_chroma_interleaved_RRGGBB_LE;
+		m_BitDepthPerChannel = 16;
 	}
 	else if (IsEqualGUID(*pPixelFormat, GUID_WICPixelFormat64bppBGRA)) {
-		m_PixelFormat = *pPixelFormat;
+		m_PixelFormat = GUID_WICPixelFormat32bppRGBA1010102;
 		m_Chroma = heif_chroma_interleaved_RRGGBBAA_BE;
+		m_BitDepthPerChannel = 16;
 	}
 	else if (IsEqualGUID(*pPixelFormat, GUID_WICPixelFormat64bppRGBA)) {
-		m_PixelFormat = *pPixelFormat;
+		m_PixelFormat = GUID_WICPixelFormat32bppRGBA1010102;
 		m_Chroma = heif_chroma_interleaved_RRGGBBAA_LE; // !
+		m_BitDepthPerChannel = 16;
 	}
 	else {
 		*pPixelFormat = GUID_WICPixelFormat24bppRGB;
 		m_PixelFormat = *pPixelFormat;
 		m_Chroma = heif_chroma_interleaved_RGB;
+		m_BitDepthPerChannel = 8;
 	}
 
 	return S_OK;
@@ -136,7 +151,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::SetThumbnail(__RPC__in_opt IWI
 	}
 	catch (const heif::Error& ex)
 	{
-		Log("Call to CHeicBitmapFrameEncode::SetThumbnail failed: %s", ex.get_message());
+		Log("Call to CHeicBitmapFrameEncode::SetThumbnail failed: %s", ex.get_message().c_str());
 		return E_INVALIDARG;
 	}
 	catch (const std::exception& ex)
@@ -175,12 +190,12 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::WritePixels(UINT lineCount, UI
 	}
 	catch (const heif::Error& ex)
 	{
-		Log("Call to CHeicBitmapFrameEncode::WriteSource failed: %s", ex.get_message());
+		Log("Call to CHeicBitmapFrameEncode::WritePixels failed: %s", ex.get_message().c_str());
 		return E_INVALIDARG;
 	}
 	catch (const std::exception& ex)
 	{
-		Log("Call to CHeicBitmapFrameEncode::WriteSource failed: %s", ex.what());
+		Log("Call to CHeicBitmapFrameEncode::WritePixels failed: %s", ex.what());
 		return E_INVALIDARG;
 	}
 
@@ -227,7 +242,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::WriteSource(__RPC__in_opt IWIC
 	}
 	catch (const heif::Error& ex)
 	{
-		Log("Call to CHeicBitmapFrameEncode::WriteSource failed: %s", ex.get_message());
+		Log("Call to CHeicBitmapFrameEncode::WriteSource failed: %s", ex.get_message().c_str());
 		return E_INVALIDARG;
 	}
 	catch (const std::exception& ex)
@@ -248,7 +263,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::Commit(void)
 	}
 	catch (const heif::Error& ex)
 	{
-		Log("Call to CHeicBitmapFrameEncode::Commit failed: %s", ex.get_message());
+		Log("Call to CHeicBitmapFrameEncode::Commit failed: %s", ex.get_message().c_str());
 		return E_INVALIDARG;
 	}
 	catch (const std::exception& ex)
@@ -267,5 +282,7 @@ void CHeicBitmapFrameEncode::CreateFrame()
 {
 	if (m_Created) return;
 	m_Frame.create(m_Width, m_Height, m_Colorspace, m_Chroma);
-	m_Frame.add_plane(heif_channel_interleaved, m_Width, m_Height, 24);
+	m_Frame.add_plane(heif_channel_interleaved, m_Width, m_Height, m_BitDepthPerChannel);
+
+	m_Created = true;
 }

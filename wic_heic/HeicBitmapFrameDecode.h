@@ -8,7 +8,7 @@ private:
 	heif::Image m_Image;
 	int m_Bpp;
 	int m_Stride;
-	uint8_t* m_Plane;
+	uint8_t* m_PlaneInterleaved;
 
 public:
 	CHeicBitmapFrameDecode(heif::ImageHandle handle);

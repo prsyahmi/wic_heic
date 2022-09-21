@@ -28,7 +28,7 @@
 
 void Log(const char* szFormat, ...);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(_DEBUG_P)
 #define DbgLog Log
 #else
 #define DbgLog

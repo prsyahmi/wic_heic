@@ -79,6 +79,21 @@ void ConvertToHeic(const std::wstring& srcFile, const std::wstring& destFile)
 			throw std::exception("Failed to GetFrame");
 		}
 
+		hr = pFrameDecode->GetSize(&width, &height);
+		if (FAILED(hr)) {
+			throw std::exception("Failed to get image size");
+		}
+
+		hr = pFrameDecode->GetResolution(&dpiX, &dpiY);
+		if (FAILED(hr)) {
+			throw std::exception("Failed to GetResolution");
+		}
+
+		hr = pFrameDecode->GetPixelFormat(&pixFormat);
+		if (FAILED(hr)) {
+			throw std::exception("Failed to GetPixelFormat");
+		}
+
 		hr = pEncoder->CreateNewFrame(&pFrameEncode, nullptr);
 		if (FAILED(hr)) {
 			throw std::exception("Failed to CreateNewFrame");
@@ -89,29 +104,14 @@ void ConvertToHeic(const std::wstring& srcFile, const std::wstring& destFile)
 			throw std::exception("Failed to frame encode");
 		}
 
-		hr = pFrameDecode->GetSize(&width, &height);
-		if (FAILED(hr)) {
-			throw std::exception("Failed to get image size");
-		}
-
 		hr = pFrameEncode->SetSize(width, height);
 		if (FAILED(hr)) {
 			throw std::exception("Failed to set image size");
 		}
 
-		hr = pFrameDecode->GetResolution(&dpiX, &dpiY);
-		if (FAILED(hr)) {
-			throw std::exception("Failed to GetResolution");
-		}
-
 		hr = pFrameEncode->SetResolution(dpiX, dpiY);
 		if (FAILED(hr)) {
 			throw std::exception("Failed to SetResolution");
-		}
-
-		hr = pFrameDecode->GetPixelFormat(&pixFormat);
-		if (FAILED(hr)) {
-			throw std::exception("Failed to GetPixelFormat");
 		}
 
 		hr = pFrameEncode->SetPixelFormat(&pixFormat);
@@ -134,6 +134,8 @@ void ConvertToHeic(const std::wstring& srcFile, const std::wstring& destFile)
 	if (FAILED(hr)) {
 		throw std::exception("Failed to Commit encoder");
 	}
+
+	printf("File converted successfully\n");
 }
 
 int main()
@@ -144,6 +146,12 @@ int main()
 	try
 	{
 		ConvertToHeic(L"samples\\01.png", L"samples\\out-01.heic");
+		ConvertToHeic(L"samples\\02.png", L"samples\\out-02.heic");
+		ConvertToHeic(L"samples\\03.heic", L"samples\\out-03.heic");
+		ConvertToHeic(L"samples\\04.heic", L"samples\\out-04.heic");
+		ConvertToHeic(L"samples\\05.heic", L"samples\\out-05.heic");
+		ConvertToHeic(L"samples\\06.heic", L"samples\\out-06.heic");
+		ConvertToHeic(L"samples\\07.heic", L"samples\\out-07.heic");
 	}
 	catch (const std::exception& ex)
 	{

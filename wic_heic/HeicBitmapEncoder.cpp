@@ -121,14 +121,17 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::CreateNewFrame(__RPC__deref_out_op
 	}
 	catch (const heif::Error& ex)
 	{
+		Log("Call to CHeicBitmapEncoder::CreateNewFrame failed: %s", ex.get_message().c_str());
 		return WINCODEC_ERR_GENERIC_ERROR;
 	}
 	catch (const std::exception& ex)
 	{
+		Log("Call to CHeicBitmapEncoder::CreateNewFrame failed: %s", ex.what());
 		return WINCODEC_ERR_GENERIC_ERROR;
 	}
 	catch (...)
 	{
+		Log("Call to CHeicBitmapEncoder::CreateNewFrame failed: Unknown exception");
 		return WINCODEC_ERR_GENERIC_ERROR;
 	}
 
@@ -154,14 +157,17 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::Commit(void)
 	}
 	catch (const heif::Error& ex)
 	{
-		return WINCODEC_ERR_GENERIC_ERROR;
+		Log("Call to CHeicBitmapEncoder::Commit failed: %s", ex.get_message().c_str());
+		return WINCODEC_ERR_INVALIDPARAMETER;
 	}
 	catch (const std::exception& ex)
 	{
+		Log("Call to CHeicBitmapEncoder::Commit failed: %s", ex.what());
 		return WINCODEC_ERR_GENERIC_ERROR;
 	}
 	catch (...)
 	{
+		Log("Call to CHeicBitmapEncoder::Commit failed: Unknown exception");
 		return WINCODEC_ERR_GENERIC_ERROR;
 	}
 
