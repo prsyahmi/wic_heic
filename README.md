@@ -10,6 +10,7 @@ This software uses libheif (https://github.com/strukturag/libheif)
 - nasm
 
 #### Steps:
+- This repository contains submodule for 3rd party libs, clone with `git clone --recurse-submodules <url>`
 - Build 3rd party component (`wic_heic\3rdparty\build.bat`)
 - Build solution
 - The resulting files will be at `(Build)\[ARCH]\[TARGET]\wic_heic.dll` or `(Build)\x86\Release\wic_heic.dll`
