@@ -16,7 +16,7 @@ CHeifStreamWriter::~CHeifStreamWriter()
 
 heif_error CHeifStreamWriter::write(const void* data, size_t size)
 {
-	HRESULT hr = m_Stream->Write(data, size, nullptr);
+	HRESULT hr = m_Stream->Write(data, (ULONG)size, nullptr);
 	if (FAILED(hr)) {
 		return{
 			heif_error_Encoding_error,
