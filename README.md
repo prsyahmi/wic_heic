@@ -9,9 +9,9 @@ This software uses libheif (https://github.com/strukturag/libheif)
 - Visual Studio C++ Compiler v14
 
 #### Steps:
-- Build 3rd party component (wic_heic\3rdparty\build.bat)
+- Build 3rd party component (`wic_heic\3rdparty\build.bat`)
 - Build solution
-- The resulting files will be at `(Build)\[ARCH]\[TARGET]\` or `(Build)\x86\Release`
+- The resulting files will be at `(Build)\[ARCH]\[TARGET]\wic_heic.dll` or `(Build)\x86\Release\wic_heic.dll`
 
 ### Installation:
 - For now there is no installer
