@@ -11,7 +11,7 @@ This software uses libheif (https://github.com/strukturag/libheif)
 #### Steps:
 - Build 3rd party component (wic_heic\3rdparty\build.bat)
 - Build solution
-- Copy `wic_heic\3rdparty\_out\[ARCH]\bin\*.dll` to `(Build)\[ARCH]\[TARGET]\`
+- The resulting files will be at `(Build)\[ARCH]\[TARGET]\` or `(Build)\x86\Release`
 
 ### Installation:
 - For now there is no installer
