@@ -2,16 +2,96 @@
 #include "wic_heic.h"
 #include "UtlReg.h"
 #include <strsafe.h>
+#include "HeicException.h"
 
 // Should be proper registry class
 
 UtlReg::UtlReg()
+	: m_hKey(NULL)
 {
 }
 
 
 UtlReg::~UtlReg()
 {
+}
+
+void UtlReg::CloseKey()
+{
+	if (m_hKey) {
+		RegCloseKey(m_hKey);
+		m_hKey = NULL;
+	}
+}
+
+void UtlReg::CreateKeyTree(HKEY hKeyRoot, const std::string& subKey)
+{
+	LSTATUS status;
+
+	CloseKey();
+
+	status = RegCreateKeyExA(
+		hKeyRoot,
+		subKey.c_str(),
+		0,
+		NULL,
+		REG_OPTION_NON_VOLATILE,
+		KEY_ALL_ACCESS,
+		NULL,
+		&m_hKey,
+		NULL);
+
+	if (status != ERROR_SUCCESS) {
+		throw HeicException(MAKE_HRESULT(0, 0, status), "[Reg] Error %X. Unable to create key at %s", status, subKey.c_str());
+	}
+}
+
+void UtlReg::CreateValue(const std::string& ValueName, const std::string& data)
+{
+	if (!m_hKey) {
+		throw HeicException(S_FALSE, "[Reg] Trying to create value, but key is not opened");
+	}
+
+	LSTATUS status = RegSetValueExA(m_hKey, ValueName.c_str(), 0, REG_SZ, (BYTE*)data.c_str(), (DWORD)data.size() + 1);
+	if (status != ERROR_SUCCESS) {
+		throw HeicException(MAKE_HRESULT(0, 0, status), "[Reg] Error %X.Unable to create value for SZ %s", status, ValueName.c_str());
+	}
+}
+
+void UtlReg::CreateValue(const std::wstring& ValueName, const std::wstring& data)
+{
+	if (!m_hKey) {
+		throw HeicException(S_FALSE, "[Reg] Trying to create value, but key is not opened");
+	}
+
+	LSTATUS status = RegSetValueExW(m_hKey, ValueName.c_str(), 0, REG_SZ, (BYTE*)data.c_str(), (DWORD)(data.size() + 1) * sizeof(WCHAR));
+	if (status != ERROR_SUCCESS) {
+		throw HeicException(MAKE_HRESULT(0, 0, status), "[Reg] Error %X.Unable to create value for SZ %s", status, ValueName.c_str());
+	}
+}
+
+void UtlReg::CreateValue(const std::string& ValueName, DWORD data)
+{
+	if (!m_hKey) {
+		throw HeicException(S_FALSE, "[Reg] Trying to create value, but key is not opened");
+	}
+
+	LSTATUS status = RegSetValueExA(m_hKey, ValueName.c_str(), 0, REG_DWORD, (BYTE*)&data, sizeof(DWORD));
+	if (status != ERROR_SUCCESS) {
+		throw HeicException(MAKE_HRESULT(0, 0, status), "[Reg] Error %X.Unable to create value for DWORD %s", status, ValueName.c_str());
+	}
+}
+
+void UtlReg::CreateValue(const std::string& ValueName, const void* pBuf, size_t pSize)
+{
+	if (!m_hKey) {
+		throw HeicException(S_FALSE, "[Reg] Trying to create value, but key is not opened");
+	}
+
+	LSTATUS status = RegSetValueExA(m_hKey, ValueName.c_str(), 0, REG_BINARY, (BYTE*)pBuf, (DWORD)pSize);
+	if (status != ERROR_SUCCESS) {
+		throw HeicException(MAKE_HRESULT(0, 0, status), "[Reg] Error %X.Unable to create value for BINARY %s", status, ValueName.c_str());
+	}
 }
 
 // https://learn.microsoft.com/en-us/windows/win32/sysinfo/deleting-a-key-with-subkeys

@@ -4,6 +4,7 @@
 #include "ComFactory.h"
 #include "ComCounter.h"
 #include "UtlReg.h"
+#include "HeicException.h"
 
 #if defined(X86)
 #pragma comment (linker, "/export:DllGetClassObject=_DllGetClassObject@12,PRIVATE")
@@ -35,298 +36,191 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	return TRUE;
 }
 
-HRESULT RegisterEncoder()
+
+HRESULT RegisterDecoder(const std::wstring& dllPath)
 {
-	// TODO: Rewrite this, this is a lazy way - no error checking, cleanup, transaction, etc
-	// Requires Admin rights
-
-	LSTATUS status;
-	HKEY hInstance;
-	HKEY hEncoder;
-	HKEY hInProc;
-	HKEY hFormat;
-
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\{AC757296-3522-4E11-9862-C17BE5A1767E}\\Instance\\" S_CLSID_HEICEncoder,
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hInstance,
-		NULL);
-
-	if (status != ERROR_SUCCESS) {
-		Log("Unable to create key for WIC %X", status);
-		return MAKE_HRESULT(0, 0, status);
-	}
-
-	const char ClsidEncoder[] = S_CLSID_HEICEncoder;
-	const char FriendlyName[] = "HEIC Encoder";
-	RegSetValueExA(hInstance, "CLSID", 0, REG_SZ, (BYTE*)ClsidEncoder, sizeof(ClsidEncoder));
-	RegSetValueExA(hInstance, "FriendlyName", 0, REG_SZ, (BYTE*)FriendlyName, sizeof(FriendlyName));
-
-	RegCloseKey(hInstance);
-
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\" S_CLSID_HEICEncoder,
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hEncoder,
-		NULL);
-
-	if (status != ERROR_SUCCESS)
+	try
 	{
-		Log("Unable to create key for HEIC Encoder %X", status);
-		return MAKE_HRESULT(0, 0, status);
+		UtlReg regInstance;
+		UtlReg regDecoder;
+
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\{7ED96837-96F0-4812-B211-F13C24117ED3}\\Instance\\" S_CLSID_HEICDecoder);
+		regInstance.CreateValue("CLSID", S_CLSID_HEICDecoder);
+		regInstance.CreateValue("FriendlyName", "HEIC Decoder");
+
+		regDecoder.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICDecoder);
+		regDecoder.CreateValue("ArbitrationPriority", 0);
+		regDecoder.CreateValue("SupportAnimation", 0);
+		regDecoder.CreateValue("SupportChromaKey", 0);
+		regDecoder.CreateValue("SupportLossless", 0);
+		regDecoder.CreateValue("SupportMultiframe", 1);
+		regDecoder.CreateValue("Author", "prsyahmi@github");
+		regDecoder.CreateValue("ContainerFormat", S_GUID_ContainerFormatHEIC);
+		regDecoder.CreateValue("Description", "HEIC Image Encoder");
+		regDecoder.CreateValue("FriendlyName", "HEIC Image Encoder");
+		regDecoder.CreateValue("FileExtensions", ".heic");
+		regDecoder.CreateValue("MimeTypes", "image/heic");
+		regDecoder.CreateValue("SpecVersion", "1.0.0.0");
+		regDecoder.CreateValue("Vendor", S_GUID_VendorPrsyahmi);
+		regDecoder.CreateValue("Version", "1.0.0.0");
+
+		regDecoder.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICDecoder "\\InprocServer32");
+		regDecoder.CreateValue(L"", dllPath.c_str());
+		regDecoder.CreateValue("ThreadingModel", "Both");
+
+		// GUID_WICPixelFormat24bppRGB
+		regDecoder.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICDecoder "\\Formats\\{6fddc324-4e03-4bfe-b185-3d77768dc90d}");
+
+		struct TPattern {
+			char* Mask;
+			char* Pattern;
+			DWORD Size;
+			DWORD Offset;
+		};
+
+		TPattern patterns[] = {
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"\x66\x74\x79\x70\x68\x65\x69\x63",
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"\x66\x74\x79\x70\x68\x65\x69\x73",
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"\x66\x74\x79\x70\x6D\x69\x66\x31",
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"\x66\x74\x79\x70\x6D\x69\x66\x32",
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"\x66\x74\x79\x70\x68\x65\x69\x78",
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"\x66\x74\x79\x70\x68\x65\x69\x6D",
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"\x66\x74\x79\x70\x6D\x73\x66\x31",
+				8,
+				4
+			},
+		};
+
+		for (size_t i = 0; i < _countof(patterns); i++) {
+			std::string sKey = "CLSID\\" S_CLSID_HEICDecoder "\\Patterns\\";
+			sKey += std::to_string(i);
+
+			regDecoder.CreateKeyTree(HKEY_CLASSES_ROOT, sKey);
+			regDecoder.CreateValue("Mask", patterns[i].Mask, patterns[i].Size);
+			regDecoder.CreateValue("Pattern", patterns[i].Pattern, patterns[i].Size);
+			regDecoder.CreateValue("Length", patterns[i].Size);
+			regDecoder.CreateValue("Position", patterns[i].Offset);
+		}
+
 	}
-	else
+	catch (const HeicException& ex)
 	{
-		DWORD dw;
-
-		dw = 0;
-		RegSetValueExA(hEncoder, "ArbitrationPriority", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 0;
-		RegSetValueExA(hEncoder, "SupportAnimation", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 0;
-		RegSetValueExA(hEncoder, "SupportChromaKey", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 0;
-		RegSetValueExA(hEncoder, "SupportLossless", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 1;
-		RegSetValueExA(hEncoder, "SupportMultiframe", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-
-		const BYTE Author[] = "prsyahmi@github";
-		const BYTE ContainerFormat[] = S_GUID_ContainerFormatHEIC;
-		const BYTE Description[] = "HEIC Image Encoder";
-		const BYTE FriendlyName[] = "HEIC Image Encoder";
-		const BYTE FileExtensions[] = ".heic";
-		const BYTE MimeTypes[] = "image/heic";
-		const BYTE SpecVersion[] = "1.0.0.0";
-		const BYTE Vendor[] = S_GUID_VendorPrsyahmi;
-		const BYTE Version[] = "1.0.0.0";
-		RegSetValueExA(hEncoder, "Author", 0, REG_SZ, Author, sizeof(Author));
-		RegSetValueExA(hEncoder, "ContainerFormat", 0, REG_SZ, ContainerFormat, sizeof(ContainerFormat));
-		RegSetValueExA(hEncoder, "Description", 0, REG_SZ, Description, sizeof(Description));
-		RegSetValueExA(hEncoder, "FriendlyName", 0, REG_SZ, FriendlyName, sizeof(FriendlyName));
-		RegSetValueExA(hEncoder, "FileExtensions", 0, REG_SZ, FileExtensions, sizeof(FileExtensions));
-		RegSetValueExA(hEncoder, "MimeTypes", 0, REG_SZ, MimeTypes, sizeof(MimeTypes));
-		RegSetValueExA(hEncoder, "SpecVersion", 0, REG_SZ, SpecVersion, sizeof(SpecVersion));
-		RegSetValueExA(hEncoder, "Vendor", 0, REG_SZ, Vendor, sizeof(Vendor));
-		RegSetValueExA(hEncoder, "Version", 0, REG_SZ, Version, sizeof(Version));
+		Log("Unable to register dll: %s", ex.what());
+		return ex.GetResult();
+	}
+	catch (const std::exception& ex)
+	{
+		Log("Unable to register dll: %s", ex.what());
+		return S_FALSE;
 	}
 
-	RegCloseKey(hEncoder);
+	return S_OK;
+}
 
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\" S_CLSID_HEICEncoder "\\InprocServer32",
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hInProc,
-		NULL);
+HRESULT RegisterEncoder(const std::wstring& dllPath)
+{
+	try
+	{
+		UtlReg regInstance;
+		UtlReg regEncoder;
 
-	if (status == ERROR_SUCCESS) {
-		std::wstring s;
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\{AC757296-3522-4E11-9862-C17BE5A1767E}\\Instance\\" S_CLSID_HEICEncoder);
+		regInstance.CreateValue("CLSID", S_CLSID_HEICEncoder);
+		regInstance.CreateValue("FriendlyName", "HEIC Encoder");
 
-		DWORD copied = 0;
-		do {
-			s.resize(s.size() + MAX_PATH);
-			copied = GetModuleFileName(GModule, &s[0], (DWORD)s.size());
-		} while (copied >= s.size());
-		s.resize(copied);
+		regEncoder.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICEncoder);
+		regEncoder.CreateValue("ArbitrationPriority", 0);
+		regEncoder.CreateValue("SupportAnimation", 0);
+		regEncoder.CreateValue("SupportChromaKey", 0);
+		regEncoder.CreateValue("SupportLossless", 0);
+		regEncoder.CreateValue("SupportMultiframe", 1);
+		regEncoder.CreateValue("Author", "prsyahmi@github");
+		regEncoder.CreateValue("ContainerFormat", S_GUID_ContainerFormatHEIC);
+		regEncoder.CreateValue("Description", "HEIC Image Encoder");
+		regEncoder.CreateValue("FriendlyName", "HEIC Image Encoder");
+		regEncoder.CreateValue("FileExtensions", ".heic");
+		regEncoder.CreateValue("MimeTypes", "image/heic");
+		regEncoder.CreateValue("SpecVersion", "1.0.0.0");
+		regEncoder.CreateValue("Vendor", S_GUID_VendorPrsyahmi);
+		regEncoder.CreateValue("Version", "1.0.0.0");
 
-		Log("Registering at %ws", s.c_str());
+		regEncoder.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICEncoder "\\InprocServer32");
+		regEncoder.CreateValue(L"", dllPath.c_str());
+		regEncoder.CreateValue("ThreadingModel", "Both");
 
-		const char Both[] = "Both";
-		RegSetValueExW(hInProc, L"", 0, REG_SZ, (BYTE*)s.c_str(), (DWORD)(s.size() * sizeof(WCHAR)));
-		RegSetValueExA(hInProc, "ThreadingModel", 0, REG_SZ, (BYTE*)Both, sizeof(Both));
+		// GUID_WICPixelFormat24bppRGB
+		regEncoder.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICEncoder "\\Formats\\{6fddc324-4e03-4bfe-b185-3d77768dc90d}");
 	}
-
-	// Let's support GUID_WICPixelFormat24bppRGB only
-
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\" S_CLSID_HEICEncoder "\\Formats\\{6fddc324-4e03-4bfe-b185-3d77768dc90d}",
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hFormat,
-		NULL);
-	RegCloseKey(hFormat);
+	catch (const HeicException& ex)
+	{
+		Log("Unable to register dll: %s", ex.what());
+		return ex.GetResult();
+	}
+	catch (const std::exception& ex)
+	{
+		Log("Unable to register dll: %s", ex.what());
+		return S_FALSE;
+	}
 
 	return S_OK;
 }
 
 STDAPI DllRegisterServer()
 {
-	// TODO: Rewrite this, this is a lazy way - no error checking, cleanup, transaction, etc
 	// Requires Admin rights
 
-	LSTATUS status;
-	HKEY hInstance;
-	HKEY hDecoder;
-	HKEY hInProc;
-	HKEY hFormat;
-	HKEY hPatterns;
+	std::wstring dllPath;
 
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\{7ED96837-96F0-4812-B211-F13C24117ED3}\\Instance\\" S_CLSID_HEICDecoder,
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hInstance,
-		NULL);
+	DWORD copied = 0;
+	do {
+		dllPath.resize(dllPath.size() + MAX_PATH);
+		copied = GetModuleFileName(GModule, &dllPath[0], (DWORD)dllPath.size());
+	} while (copied >= dllPath.size());
+	dllPath.resize(copied);
 
-	if (status != ERROR_SUCCESS) {
-		Log("Unable to create key for WIC %X", status);
-		return MAKE_HRESULT(0, 0, status);
+	HRESULT hr;
+	
+	hr = RegisterDecoder(dllPath);
+	if (hr != S_OK) {
+		return hr;
 	}
 
-	const char ClsidDecoder[] = S_CLSID_HEICDecoder;
-	const char FriendlyName[] = "HEIC Decoder";
-	RegSetValueExA(hInstance, "CLSID", 0, REG_SZ, (BYTE*)ClsidDecoder, sizeof(ClsidDecoder));
-	RegSetValueExA(hInstance, "FriendlyName", 0, REG_SZ, (BYTE*)FriendlyName, sizeof(FriendlyName));
-
-	RegCloseKey(hInstance);
-
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\" S_CLSID_HEICDecoder,
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hDecoder,
-		NULL);
-
-	if (status != ERROR_SUCCESS)
-	{
-		Log("Unable to create key for HEIC Decoder %X", status);
-		return MAKE_HRESULT(0, 0, status);
+	hr = RegisterEncoder(dllPath);
+	if (hr != S_OK) {
+		return hr;
 	}
-	else
-	{
-		DWORD dw;
-
-		dw = 0;
-		RegSetValueExA(hDecoder, "ArbitrationPriority", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 0;
-		RegSetValueExA(hDecoder, "SupportAnimation", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 0;
-		RegSetValueExA(hDecoder, "SupportChromaKey", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 0;
-		RegSetValueExA(hDecoder, "SupportLossless", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 1;
-		RegSetValueExA(hDecoder, "SupportMultiframe", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-
-		const BYTE Author[] = "prsyahmi@github";
-		const BYTE ColorManagementVersion[] = "1.0.0.0";
-		const BYTE ContainerFormat[] = S_GUID_ContainerFormatHEIC;
-		const BYTE Description[] = "HEIC Image Decoder";
-		const BYTE FriendlyName[] = "HEIC Image Decoder";
-		const BYTE FileExtensions[] = ".heic";
-		const BYTE MimeTypes[] = "image/heic";
-		const BYTE SpecVersion[] = "1.0.0.0";
-		const BYTE Vendor[] = S_GUID_VendorPrsyahmi;
-		const BYTE Version[] = "1.0.0.0";
-		RegSetValueExA(hDecoder, "Author", 0, REG_SZ, Author, sizeof(Author));
-		RegSetValueExA(hDecoder, "ColorManagementVersion", 0, REG_SZ, ColorManagementVersion, sizeof(ColorManagementVersion));
-		RegSetValueExA(hDecoder, "ContainerFormat", 0, REG_SZ, ContainerFormat, sizeof(ContainerFormat));
-		RegSetValueExA(hDecoder, "Description", 0, REG_SZ, Description, sizeof(Description));
-		RegSetValueExA(hDecoder, "FriendlyName", 0, REG_SZ, FriendlyName, sizeof(FriendlyName));
-		RegSetValueExA(hDecoder, "FileExtensions", 0, REG_SZ, FileExtensions, sizeof(FileExtensions));
-		RegSetValueExA(hDecoder, "MimeTypes", 0, REG_SZ, MimeTypes, sizeof(MimeTypes));
-		RegSetValueExA(hDecoder, "SpecVersion", 0, REG_SZ, SpecVersion, sizeof(SpecVersion));
-		RegSetValueExA(hDecoder, "Vendor", 0, REG_SZ, Vendor, sizeof(Vendor));
-		RegSetValueExA(hDecoder, "Version", 0, REG_SZ, Version, sizeof(Version));
-	}
-
-	RegCloseKey(hDecoder);
-
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\" S_CLSID_HEICDecoder "\\InprocServer32",
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hInProc,
-		NULL);
-
-	if (status == ERROR_SUCCESS) {
-		std::wstring s;
-
-		DWORD copied = 0;
-		do {
-			s.resize(s.size() + MAX_PATH);
-			copied = GetModuleFileName(GModule, &s[0], (DWORD)s.size());
-		} while (copied >= s.size());
-		s.resize(copied);
-
-		Log("Registering at %ws", s.c_str());
-
-		const char Both[] = "Both";
-		RegSetValueExW(hInProc, L"", 0, REG_SZ, (BYTE*)s.c_str(), (DWORD)(s.size() * sizeof(WCHAR)));
-		RegSetValueExA(hInProc, "ThreadingModel", 0, REG_SZ, (BYTE*)Both, sizeof(Both));
-	}
-
-	// Let's support GUID_WICPixelFormat24bppRGB only
-
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\" S_CLSID_HEICDecoder "\\Formats\\{6fddc324-4e03-4bfe-b185-3d77768dc90d}",
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hFormat,
-		NULL);
-	RegCloseKey(hFormat);
-
-	status = RegCreateKeyExA(
-		HKEY_CLASSES_ROOT,
-		"CLSID\\" S_CLSID_HEICDecoder "\\Patterns\\0",
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&hPatterns,
-		NULL);
-
-	if (status == ERROR_SUCCESS) {
-		DWORD dw;
-		const BYTE Mask[] = "\xff\xff\xff\xff\xff\xff\xff\xff";
-		const BYTE Pattern[] = "\x66\x74\x79\x70\x68\x65\x69\x63";
-
-		dw = 8;
-		RegSetValueExA(hPatterns, "Length", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-		dw = 4;
-		RegSetValueExA(hPatterns, "Position", 0, REG_DWORD, (BYTE*)&dw, sizeof(dw));
-
-		RegSetValueExA(hPatterns, "Mask", 0, REG_BINARY, Mask, sizeof(Mask) - 1);
-		RegSetValueExA(hPatterns, "Pattern", 0, REG_BINARY, Pattern, sizeof(Pattern) - 1);
-
-		RegCloseKey(hPatterns);
-	}
-
-	RegisterEncoder();
 
 	SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 	return S_OK;
@@ -336,6 +230,8 @@ STDAPI DllUnregisterServer()
 {
 	RegDelnodeRecurse(HKEY_CLASSES_ROOT, "CLSID\\{7ED96837-96F0-4812-B211-F13C24117ED3}\\Instance\\" S_CLSID_HEICDecoder);
 	RegDelnodeRecurse(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICDecoder);
+	RegDelnodeRecurse(HKEY_CLASSES_ROOT, "CLSID\\{AC757296-3522-4E11-9862-C17BE5A1767E}\\Instance\\" S_CLSID_HEICEncoder);
+	RegDelnodeRecurse(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICEncoder);
 
 	SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 	return S_OK;
