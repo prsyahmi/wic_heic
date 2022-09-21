@@ -260,6 +260,9 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 		}
 
 		std::vector<heif_item_id> ids = m_Handle.get_list_of_thumbnail_IDs();
+		if (!ids.size()) {
+			return WINCODEC_ERR_FRAMEMISSING;
+		}
 
 		heif::ImageHandle thumbHandle = m_Handle.get_thumbnail(ids[index]);
 		if (thumbHandle.empty()) {
