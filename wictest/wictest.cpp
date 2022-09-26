@@ -152,6 +152,7 @@ int main()
 		ConvertToHeic(L"samples\\05.heic", L"samples\\out-05.heic");
 		ConvertToHeic(L"samples\\06.heic", L"samples\\out-06.heic");
 		ConvertToHeic(L"samples\\07.heic", L"samples\\out-07.heic");
+		ConvertToHeic(L"samples\\08.gif", L"samples\\out-08.heic");
 	}
 	catch (const std::exception& ex)
 	{
