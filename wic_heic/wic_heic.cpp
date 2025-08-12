@@ -6,7 +6,7 @@
 
 #pragma comment (lib, "heif.lib")
 #pragma comment (lib, "libde265.lib")
-#pragma comment (lib, "x265-static.lib")
+#pragma comment (lib, "libkvazaar.lib")
 
 void Log(const char* szFormat, ...)
 {

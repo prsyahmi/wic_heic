@@ -21,6 +21,7 @@
 #pragma warning(disable: 4800)
 #define LIBHEIF_STATIC_BUILD
 #define LIBDE264_STATIC_BUILD
+#define KVZ_STATIC_LIB
 #include <libheif/heif_cxx.h>
 #pragma warning(pop)
 
