@@ -6,8 +6,10 @@ private:
 	std::atomic<uint32_t> m_Count;
 	heif::ImageHandle m_Handle;
 	heif::Image m_Image;
+	heif_chroma m_chroma;
+	WICPixelFormatGUID m_PixelFormat;
 	int m_Bpp;
-	int m_Stride;
+	size_t m_Stride;
 	uint8_t* m_PlaneInterleaved;
 
 public:

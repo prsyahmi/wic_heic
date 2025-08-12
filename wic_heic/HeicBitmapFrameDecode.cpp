@@ -15,30 +15,58 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
 		bpc = handle.get_luma_bits_per_pixel();
 	}
 
-	// TODO: libheif has problem getting RGB channel on 10bit image?
-	// Until we figure it out, use RGB/RGBA
-	heif_chroma chroma = heif_chroma_interleaved_RGB;
-	if (bpc == 8 && !m_Handle.has_alpha_channel()) {
-		chroma = heif_chroma_interleaved_RGB;
-		m_Bpp = 32;
-	} else if (bpc == 8 && m_Handle.has_alpha_channel()) {
-		chroma = heif_chroma_interleaved_RGBA;
-		m_Bpp = 32;
-	} else if (bpc == 10 && !m_Handle.has_alpha_channel()) {
-		//chroma = heif_chroma_interleaved_RRGGBB_BE; // 16 bits
-		//m_Bpp = 64;
-		chroma = heif_chroma_interleaved_RGB;
-		m_Bpp = 32;
-	} else if (bpc == 10 && m_Handle.has_alpha_channel()) {
-		//chroma = heif_chroma_interleaved_RRGGBBAA_BE; // 16 bits
-		//m_Bpp = 64;
-		chroma = heif_chroma_interleaved_RGBA;
+	m_chroma = heif_chroma_interleaved_RGB;
+	m_PixelFormat = GUID_WICPixelFormat24bppRGB;
+	m_Bpp = 32;
+
+	if (bpc == 8 && !m_Handle.has_alpha_channel())
+	{
+		m_PixelFormat = GUID_WICPixelFormat24bppRGB;
+		m_chroma = heif_chroma_interleaved_RGB;
 		m_Bpp = 32;
 	}
+	else if (bpc == 8 && m_Handle.has_alpha_channel())
+	{
+		m_PixelFormat = GUID_WICPixelFormat32bppRGBA;
+		m_chroma = heif_chroma_interleaved_RGBA;
+		m_Bpp = 32;
+	}
+	else if (bpc == 10 && !m_Handle.has_alpha_channel())
+	{
+		m_PixelFormat = GUID_WICPixelFormat48bppRGB;
+		m_chroma = heif_chroma_interleaved_RRGGBB_BE;
+		m_Bpp = 32;
+	}
+	else if (bpc == 10 && m_Handle.has_alpha_channel())
+	{
+		m_PixelFormat = GUID_WICPixelFormat64bppRGBA;
+		m_chroma = heif_chroma_interleaved_RRGGBBAA_BE;
+		m_Bpp = 64;
+	}
+	else if (bpc == 12 && !m_Handle.has_alpha_channel())
+	{
+		m_PixelFormat = GUID_WICPixelFormat48bppRGB;
+		m_chroma = heif_chroma_interleaved_RRGGBB_BE;
+		m_Bpp = 48;
+	}
+	else if (bpc == 12 && m_Handle.has_alpha_channel())
+	{
+		m_PixelFormat = GUID_WICPixelFormat64bppRGBA;
+		m_chroma = heif_chroma_interleaved_RRGGBBAA_BE;
+		m_Bpp = 64;
+	}
+
+	// No HDR support for now
+	m_chroma = heif_chroma_interleaved_RGB;
+	m_PixelFormat = GUID_WICPixelFormat24bppRGB;
+	m_Bpp = 32;
 
 	// Set both to undefined to use original one
-	m_Image = handle.decode_image(heif_colorspace_RGB, chroma);
-	m_PlaneInterleaved = m_Image.get_plane(heif_channel_interleaved, &m_Stride);
+	m_Image = handle.decode_image(heif_colorspace_RGB, m_chroma);
+	m_PlaneInterleaved = m_Image.get_plane2(heif_channel_interleaved, &m_Stride);
+
+	DbgLog("Decode: (chroma=%d, bpp=%d, bpc=%d, stride=%d)",
+		m_chroma, m_Bpp, bpc, m_Stride);
 
 	if (!m_PlaneInterleaved || !m_Stride) {
 		throw std::exception("Unable to get plane");
@@ -109,48 +137,8 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetPixelFormat(__RPC__out WICP
 		return E_INVALIDARG;
 	}
 
-	heif_chroma cformat = m_Image.get_chroma_format();
-	DbgLog("GetPixelFormat: %d", cformat);
-
-	switch (cformat)
-	{
-	case heif_chroma_monochrome:
-		// I'm unsure about this... Does heif_chroma_monochrome has fixed BPP?
-		if (m_Bpp == 1) {
-			*pPixelFormat = GUID_WICPixelFormatBlackWhite;
-		} else if (m_Bpp == 2) {
-			*pPixelFormat = GUID_WICPixelFormat2bppGray;
-		} else if (m_Bpp == 4) {
-			*pPixelFormat = GUID_WICPixelFormat4bppGray;
-		} else if (m_Bpp == 8) {
-			*pPixelFormat = GUID_WICPixelFormat8bppGray;
-		}
-		break;
-	case heif_chroma_420:
-	case heif_chroma_422:
-	case heif_chroma_444:
-		//*pPixelFormat = ;
-		break;
-	case heif_chroma_interleaved_RGB:
-		*pPixelFormat = GUID_WICPixelFormat24bppRGB;
-		break;
-	case heif_chroma_interleaved_RGBA:
-		*pPixelFormat = GUID_WICPixelFormat32bppRGBA;
-		break;
-	case heif_chroma_interleaved_RRGGBB_BE:
-		*pPixelFormat = GUID_WICPixelFormat32bppBGR101010;
-		break;
-	case heif_chroma_interleaved_RRGGBB_LE:
-		*pPixelFormat = GUID_WICPixelFormat32bppBGR101010;
-		break;
-	case heif_chroma_interleaved_RRGGBBAA_BE:
-		*pPixelFormat = GUID_WICPixelFormat64bppRGBA; // AA BB GG RR (16 bpc, BE)
-		break;
-	case heif_chroma_interleaved_RRGGBBAA_LE:
-		*pPixelFormat = GUID_WICPixelFormat64bppRGBA; // AA BB GG RR (16 bpc, BE)
-		break;
-	}
-
+	DbgLog("GetPixelFormat");
+	*pPixelFormat = m_PixelFormat;
 	return S_OK;
 }
 
@@ -198,41 +186,12 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const
 
 	uint8_t* out = pbBuffer;
 
-	if (m_Bpp == 32)
+	for (int height = 0; height < rc.Height; height++)
 	{
-		for (int height = 0; height < rc.Height; height++)
-		{
-			uint8_t offsetX = rc.X * bytesPerPixel;
-			memcpy_s(out, cbBufferSize - offsetX, plane + offsetX, cbStride - offsetX);
-			out += cbStride;
-			plane += m_Stride;
-		}
-	}
-	else if (m_Bpp == 64)
-	{
-#pragma pack (push, 1)
-		struct TRRGGBBAA {
-			uint16_t r;
-			uint16_t g;
-			uint16_t b;
-			uint16_t a;
-		};
-#pragma pack (pop)
-
-		for (int y = 0; y < rc.Height; y++)
-		{
-			uint16_t* outX = (uint16_t*)out;
-			for (int x = 0; x < rc.Width; x++)
-			{
-				uint32_t offsetX = (rc.X + x) * bytesPerPixel;
-				uint8_t* planeX = plane + offsetX;
-
-				TRRGGBBAA* rgba = (TRRGGBBAA*)planeX;
-			}
-
-			out += cbStride;
-			plane += m_Stride;
-		}
+		uint8_t offsetX = rc.X * bytesPerPixel;
+		memcpy_s(out, cbBufferSize - offsetX, plane + offsetX, cbStride - offsetX);
+		out += cbStride;
+		plane += m_Stride;
 	}
 
 	return S_OK;
