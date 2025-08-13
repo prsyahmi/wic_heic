@@ -72,8 +72,8 @@ jobs:
     - name: Version Tagging
       if: github.ref_type == 'tag'
       run: |
-        Rename-Item -Path ".\(Build)\x64\Release\en-US\WicHeic.msi" -NewName "WicHeic-${{ github.ref_name }}_x64.msi"
-        Rename-Item -Path ".\(Build)\x86\Release\en-US\WicHeic.msi" -NewName "WicHeic-${{ github.ref_name }}_x86.msi"
+        Rename-Item -Path ".\(Build)\x64\Release\en-US\WicHeic.msi" -NewName "WicHeic_${{ github.ref_name }}-x64.msi"
+        Rename-Item -Path ".\(Build)\x86\Release\en-US\WicHeic.msi" -NewName "WicHeic_${{ github.ref_name }}-x86.msi"
 
     - name: Release
       uses: softprops/action-gh-release@v2
@@ -81,5 +81,5 @@ jobs:
       with:
         body_path: CHANGELOG_LATEST.md
         files: |
-          ./(Build)/x64/Release/en-US/wicheic-${{ github.ref_name }}_x64.msi
-          ./(Build)/x86/Release/en-US/wicheic-${{ github.ref_name }}_x86.msi
+          ./(Build)/x64/Release/en-US/wicheic_${{ github.ref_name }}-x64.msi
+          ./(Build)/x86/Release/en-US/wicheic_${{ github.ref_name }}-x86.msi
