@@ -26,10 +26,18 @@ jobs:
         fetch-tags: 'true'
         fetch-depth: 0
 
+    - name: 3rd party check
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        $CACHE_KEY=git ls-files -s wic_heic\3rdparty | git hash-object --stdin
+        echo "Cache key: $CACHE_KEY"
+        echo "CACHE_KEY=$CACHE_KEY" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
     - name: Cache 3rd party build
+      id: cache-ext
       uses: actions/cache@v4
       with:
-        key: ${{ runner.os }}-3rdparty-${{ hashFiles('**/wic_heic/3rdparty/build.bat') }}
+        key: ${{ runner.os }}-3rdparty-${{ env.CACHE_KEY }}
         path: |
           .\wic_heic\3rdparty\_out
           .\wic_heic\3rdparty\_tmp
@@ -39,6 +47,7 @@ jobs:
 
     - name: 3rd party build
       working-directory: ${{env.GITHUB_WORKSPACE}}
+      if: steps.cache-ext.outputs.cache-hit != 'true'
       shell: cmd
       run: |
         cd .\wic_heic\3rdparty
