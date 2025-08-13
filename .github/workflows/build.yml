@@ -65,14 +65,14 @@ jobs:
     - name: Compressing files
       run: |
         cd '.\(Build)'
-        powershell Compress-Archive -Path .\x64\Release\*.dll,.\x64\Release\*.pdb,..\Installer\*.bat -DestinationPath .\x64.zip
-        powershell Compress-Archive -Path .\x86\Release\*.dll,.\x86\Release\*.pdb,..\Installer\*.bat -DestinationPath .\x86.zip
+        powershell Compress-Archive -Path .\x64\Release\*.dll,.\x64\Release\*.pdb,..\Installer\*.bat -DestinationPath .\wicheic_x64.zip
+        powershell Compress-Archive -Path .\x86\Release\*.dll,.\x86\Release\*.pdb,..\Installer\*.bat -DestinationPath .\wicheic_x86.zip
 
     - name: Release
       uses: softprops/action-gh-release@v2
       if: github.ref_type == 'tag'
       with:
-        body_path: CHANGELOG.md
+        body_path: CHANGELOG_LATEST.md
         files: |
-          ./(Build)/x64.zip
-          ./(Build)/x86.zip
+          ./(Build)/wicheic_x64.zip
+          ./(Build)/wicheic_x86.zip
