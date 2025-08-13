@@ -84,43 +84,67 @@ HRESULT RegisterDecoder(const std::wstring& dllPath)
 		TPattern patterns[] = {
 			{
 				"\xff\xff\xff\xff\xff\xff\xff\xff",
-				"\x66\x74\x79\x70\x68\x65\x69\x63",
+				"ftypheic", // Regular image
 				8,
 				4
 			},
 			{
 				"\xff\xff\xff\xff\xff\xff\xff\xff",
-				"\x66\x74\x79\x70\x68\x65\x69\x73",
+				"ftypheix", // Extended range >8 bit
 				8,
 				4
 			},
 			{
 				"\xff\xff\xff\xff\xff\xff\xff\xff",
-				"\x66\x74\x79\x70\x6D\x69\x66\x31",
+				"ftyphevc", // Image sequence
 				8,
 				4
 			},
 			{
 				"\xff\xff\xff\xff\xff\xff\xff\xff",
-				"\x66\x74\x79\x70\x6D\x69\x66\x32",
+				"ftypheim", // Image sequence
 				8,
 				4
 			},
 			{
 				"\xff\xff\xff\xff\xff\xff\xff\xff",
-				"\x66\x74\x79\x70\x68\x65\x69\x78",
+				"ftypheis", // Scalable image
 				8,
 				4
 			},
 			{
 				"\xff\xff\xff\xff\xff\xff\xff\xff",
-				"\x66\x74\x79\x70\x68\x65\x69\x6D",
+				"ftyphevm", // Multiview sequence
 				8,
 				4
 			},
 			{
 				"\xff\xff\xff\xff\xff\xff\xff\xff",
-				"\x66\x74\x79\x70\x6D\x73\x66\x31",
+				"ftyphevs", // Scalable sequence
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"ftypmif1", // Nokia alpha image
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"ftypmsf1", // Nokia animation image
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"ftypmsf1", // Nokia animation image
+				8,
+				4
+			},
+			{
+				"\xff\xff\xff\xff\xff\xff\xff\xff",
+				"ftypavif", // AV1 image
 				8,
 				4
 			},

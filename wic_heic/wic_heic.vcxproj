@@ -172,6 +172,7 @@
     <ClInclude Include="HeicBitmapFrameDecode.h" />
     <ClInclude Include="HeicBitmapFrameEncode.h" />
     <ClInclude Include="HeicException.h" />
+    <ClInclude Include="HeicMetadataQueryReader.h" />
     <ClInclude Include="HeifStreamReader.h" />
     <ClInclude Include="HeifStreamWriter.h" />
     <ClInclude Include="stdafx.h" />
@@ -201,6 +202,7 @@
     <ClCompile Include="HeicBitmapFrameDecode.cpp" />
     <ClCompile Include="HeicBitmapFrameEncode.cpp" />
     <ClCompile Include="HeicException.cpp" />
+    <ClCompile Include="HeicMetadataQueryReader.cpp" />
     <ClCompile Include="HeifStreamReader.cpp" />
     <ClCompile Include="HeifStreamWriter.cpp" />
     <ClCompile Include="stdafx.cpp">

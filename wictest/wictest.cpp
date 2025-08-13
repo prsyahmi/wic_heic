@@ -74,6 +74,10 @@ void ConvertToHeic(const std::wstring& srcFile, const std::wstring& destFile)
 		double dpiX, dpiY;
 		WICPixelFormatGUID pixFormat;
 
+		if (nFrame > 1) {
+			printf("    Frame %d\n", i);
+		}
+
 		hr = pDecoder->GetFrame(i, &pFrameDecode);
 		if (FAILED(hr)) {
 			throw std::exception("Failed to GetFrame");
