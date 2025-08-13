@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  SOLUTION_FILE_PATH: .
+  BUILD_CONFIGURATION: Release
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - name: Cache 3rd party build
+      uses: actions/cache@v4
+      with:
+        key: ${{ runner.os }}-3rdparty-${{ hashFiles('**/wic_heic/3rdparty/build.bat') }}
+        path: |
+          .\wic_heic\3rdparty\_out
+          .\wic_heic\3rdparty\_tmp
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: 3rd party build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: cmd
+      run: |
+        cd .\wic_heic\3rdparty
+        build.bat
+
+    - name: Build x86
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x86 ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Build x64
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        path: ./(Build)
+        retention-days: 3
+
+    - name: Compressing files
+      run: |
+        cd '.\(Build)'
+        powershell Compress-Archive -Path .\x64\Release\*.dll,.\x64\Release\*.pdb,..\Installer\*.bat -DestinationPath .\x64.zip
+        powershell Compress-Archive -Path .\x86\Release\*.dll,.\x86\Release\*.pdb,..\Installer\*.bat -DestinationPath .\x86.zip
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: github.ref_type == 'tag'
+      with:
+        body_path: CHANGELOG.md
+        files: |
+          .\(Build)\x64.zip
+          .\(Build)\x86.zip

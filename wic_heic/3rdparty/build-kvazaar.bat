@@ -16,7 +16,7 @@ md _tmp\kvazaar\%B_TMP% 2> nul
 cd _tmp\kvazaar\%B_TMP%
 
 rem set B_STATIC=-DCMAKE_CXX_FLAGS_RELEASE="/MT /O2 /Ob2 /DNDEBUG"
-set B_STATIC=-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+set B_STATIC=-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_CXX_FLAGS_RELEASE="/MT /O2 /Ob2 /DNDEBUG"
 
 cmake -G "%B_VC%" -A %B_BIT% -DCMAKE_INSTALL_PREFIX="%B_OUT%" %B_STATIC% -DBUILD_SHARED_LIBS=0 ..\..\..\kvazaar
 cmake --build . --target install --config Release
