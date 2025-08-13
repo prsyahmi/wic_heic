@@ -1,0 +1,26 @@
+﻿<Project Sdk="WixToolset.Sdk/6.0.1">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutputPath>..\(Build)\x64\Release</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <OutputPath>..\(Build)\x86\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutputPath>..\(Build)\x64\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <OutputPath>$(SolutionDir)(Build)\$(PlatformTarget)\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <OutputPath>..\(Build)\x86\Release\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <OutputPath>$(SolutionDir)(Build)\$(PlatformTarget)\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputName>WicHeic</OutputName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\wic_heic\wic_heic.vcxproj" />
+  </ItemGroup>
+</Project>

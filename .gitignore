@@ -17,3 +17,4 @@ ipch
 *.opendb
 *.pdb
 out-*.heic
+Installer/obj

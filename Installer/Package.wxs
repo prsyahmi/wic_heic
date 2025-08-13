@@ -1,0 +1,10 @@
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Package Id="prsyahmi.WicHeic" Name="WicHeic" Manufacturer="WicHeic" Version="1.0.4.0">
+		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+    <Media Id="1" Cabinet="WicHeic.cab" EmbedCab="yes"></Media>
+
+		<Feature Id="Main">
+      <ComponentGroupRef Id="WicHeic" Primary="yes" />
+		</Feature>
+	</Package>
+</Wix>

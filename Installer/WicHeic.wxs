@@ -1,0 +1,10 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <ComponentGroup Id="WicHeic" Directory="INSTALLFOLDER">
+      <Component Guid="827380dc-6d34-4237-a063-6375ea837dcc">
+        <File Source="wic_heic.dll" SelfRegCost="1" KeyPath="yes" />
+        <File Source='License.txt' Vital='no' />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
