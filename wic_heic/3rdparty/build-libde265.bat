@@ -14,7 +14,7 @@ if "%1"=="x86" set B_BIT=Win32
 if "%1"=="x64" set B_BIT=x64
 
 rem set B_STATIC=-DCMAKE_CXX_FLAGS_RELEASE="/MT /Zi /O2 /Ob2 /DNDEBUG"
-set B_STATIC=-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+set B_STATIC=-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_CXX_FLAGS_RELEASE="/MT /O2 /Ob2 /DNDEBUG"
 
 copy libde265\extra\libde265\de265-version.h libde265\libde265
 
