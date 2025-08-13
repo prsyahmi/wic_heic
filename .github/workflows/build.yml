@@ -58,10 +58,18 @@ jobs:
         path: ./(Build)
         retention-days: 3
 
+    - name: Compressing files
+      run: |
+        # Compress files: dll & pdb at .\(Output)\Release and .bat from .\(Output)\Release\_out to _out\x86.zip and _out\x64.zip
+        cd .\wic_heic\3rdparty\_out
+        powershell Compress-Archive -Path .\x64\Release\*.dll, .\x64\Release\*.pdb, ..\Installer\*.bat -DestinationPath .\x64.zip
+        powershell Compress-Archive -Path .\x86\Release\*.dll, .\x86\Release\*.pdb, ..\Installer\*.bat -DestinationPath .\x86.zip
+
     - name: Release
       uses: softprops/action-gh-release@v2
-      if: github.ref_type == 'tag'
+      #if: github.ref_type == 'tag'
       with:
+        body_path: CHANGELOG.md
         files: |
-          Release.txt
-          LICENSE
+          .\(Build)\x64.zip
+          .\(Build)\x86.zip
