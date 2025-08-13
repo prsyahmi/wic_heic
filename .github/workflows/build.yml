@@ -13,7 +13,7 @@ env:
   BUILD_CONFIGURATION: Release
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -74,5 +74,5 @@ jobs:
       with:
         body_path: CHANGELOG.md
         files: |
-          .\(Build)\x64.zip
-          .\(Build)\x86.zip
+          ./(Build)/x64.zip
+          ./(Build)/x86.zip
