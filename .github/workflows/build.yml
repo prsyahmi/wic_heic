@@ -44,6 +44,13 @@ jobs:
         cd .\wic_heic\3rdparty
         build.bat
 
+    - name: Version Tagging
+      if: github.ref_type == 'tag'
+      run: |
+        cd '.\Installer'
+        $VER='${{ github.ref_name }}'.Replace('v','')
+        (Get-Content Package.wxs).Replace('1.0.0', $VER) | Set-Content Package.wxs
+
     - name: Build x86
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
@@ -60,13 +67,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         path: ./(Build)
-        retention-days: 3
+        retention-days: 1
 
-    - name: Compressing files
+    - name: Version Tagging
+      if: github.ref_type == 'tag'
       run: |
-        cd '.\(Build)'
-        powershell Compress-Archive -Path .\x64\Release\*.dll,.\x64\Release\*.pdb,..\Installer\*.bat -DestinationPath .\wicheic_x64.zip
-        powershell Compress-Archive -Path .\x86\Release\*.dll,.\x86\Release\*.pdb,..\Installer\*.bat -DestinationPath .\wicheic_x86.zip
+        Rename-Item -Path ".\(Build)\x64\Release\en-US\WicHeic.msi" -NewName "WicHeic-${{ github.ref_name }}_x64.msi"
+        Rename-Item -Path ".\(Build)\x86\Release\en-US\WicHeic.msi" -NewName "WicHeic-${{ github.ref_name }}_x86.msi"
 
     - name: Release
       uses: softprops/action-gh-release@v2
@@ -74,5 +81,5 @@ jobs:
       with:
         body_path: CHANGELOG_LATEST.md
         files: |
-          ./(Build)/wicheic_x64.zip
-          ./(Build)/wicheic_x86.zip
+          ./(Build)/x64/Release/en-US/wicheic-${{ github.ref_name }}_x64.msi
+          ./(Build)/x86/Release/en-US/wicheic-${{ github.ref_name }}_x86.msi
