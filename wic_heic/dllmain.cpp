@@ -224,6 +224,60 @@ HRESULT RegisterEncoder(const std::wstring& dllPath)
 	return S_OK;
 }
 
+HRESULT RegisterFiletype(const std::wstring& dllPath)
+{
+	try
+	{
+		UtlReg regInstance;
+		UtlReg regDecoder;
+
+		// Windows Photo Gallery and Windows Explorer
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, ".heic");
+		regInstance.CreateValue("ContentType", "image/heic");
+		regInstance.CreateValue("PerceivedType", "image");
+
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, ".heics");
+		regInstance.CreateValue("ContentType", "image/heic-sequence");
+		regInstance.CreateValue("PerceivedType", "image");
+
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, ".heif");
+		regInstance.CreateValue("ContentType", "image/heif");
+		regInstance.CreateValue("PerceivedType", "image");
+
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, ".heifs");
+		regInstance.CreateValue("ContentType", "image/heif-sequence");
+		regInstance.CreateValue("PerceivedType", "image");
+
+		regDecoder.CreateKeyTree(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\KindMap");
+		regDecoder.CreateValue(".heic", "picture");
+		regDecoder.CreateValue(".heics", "picture");
+		regDecoder.CreateValue(".heif", "picture");
+		regDecoder.CreateValue(".heifs", "picture");
+
+		// Integration with the Windows Thumbnail Cache
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, "SystemFileAssociations\\.heic\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}");
+		regInstance.CreateValue("", "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}");
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, "SystemFileAssociations\\.heics\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}");
+		regInstance.CreateValue("", "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}");
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, "SystemFileAssociations\\.heif\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}");
+		regInstance.CreateValue("", "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}");
+		regInstance.CreateKeyTree(HKEY_CLASSES_ROOT, "SystemFileAssociations\\.heifs\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}");
+		regInstance.CreateValue("", "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}");
+	}
+	catch (const HeicException& ex)
+	{
+		Log("Unable to register dll: %s", ex.what());
+		return ex.GetResult();
+	}
+	catch (const std::exception& ex)
+	{
+		Log("Unable to register dll: %s", ex.what());
+		return S_FALSE;
+	}
+
+	return S_OK;
+}
+
 STDAPI DllRegisterServer()
 {
 	// Requires Admin rights
@@ -245,6 +299,11 @@ STDAPI DllRegisterServer()
 	}
 
 	hr = RegisterEncoder(dllPath);
+	if (hr != S_OK) {
+		return hr;
+	}
+
+	hr = RegisterFiletype(dllPath);
 	if (hr != S_OK) {
 		return hr;
 	}
