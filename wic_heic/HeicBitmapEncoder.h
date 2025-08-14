@@ -10,7 +10,7 @@ private:
 
 public:
 	CHeicBitmapEncoder();
-	~CHeicBitmapEncoder();
+	virtual ~CHeicBitmapEncoder();
 
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
 	virtual ULONG STDMETHODCALLTYPE AddRef(void);

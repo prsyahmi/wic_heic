@@ -170,7 +170,6 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetPreview(__RPC__deref_out_opt IW
 			return E_OUTOFMEMORY;
 		}
 
-		decoder->AddRef();
 		*ppIBitmapSource = decoder;
 	}
 	catch (const heif::Error& ex)
@@ -234,7 +233,6 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetThumbnail(__RPC__deref_out_opt 
 			return E_OUTOFMEMORY;
 		}
 
-		decoder->AddRef();
 		*ppIThumbnail = decoder;
 	}
 	catch (const heif::Error& ex)
@@ -306,7 +304,6 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrame(UINT index, __RPC__deref_
 			return E_OUTOFMEMORY;
 		}
 
-		decoder->AddRef();
 		*ppIBitmapFrame = decoder;
 	}
 	catch (const heif::Error& ex)

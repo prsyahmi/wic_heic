@@ -7,7 +7,7 @@ private:
 
 public:
 	CHeifStreamWriter(IStream* stream);
-	~CHeifStreamWriter();
+	virtual ~CHeifStreamWriter();
 
 	heif_error write(const void* data, size_t size) override;
 };

@@ -7,7 +7,7 @@ private:
 
 public:
 	CComFactory();
-	~CComFactory();
+	virtual ~CComFactory();
 
 	virtual HRESULT STDMETHODCALLTYPE CreateInstance(_In_opt_ IUnknown *pUnkOuter, _In_ REFIID riid, _COM_Outptr_ void **ppvObject);
 	virtual HRESULT STDMETHODCALLTYPE LockServer(BOOL fLock);

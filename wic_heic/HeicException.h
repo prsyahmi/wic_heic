@@ -8,7 +8,7 @@ private:
 
 public:
 	HeicException(HRESULT hr, const char* szFormat, ...);
-	~HeicException();
+	virtual ~HeicException();
 
 	HRESULT GetResult() const;
 

@@ -242,7 +242,6 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 			return E_OUTOFMEMORY;
 		}
 
-		decoder->AddRef();
 		*ppIThumbnail = decoder;
 	}
 	catch (const heif::Error& ex)

@@ -14,7 +14,7 @@ private:
 
 public:
 	CHeicBitmapFrameDecode(heif::ImageHandle handle);
-	~CHeicBitmapFrameDecode();
+	virtual ~CHeicBitmapFrameDecode();
 
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
 	virtual ULONG STDMETHODCALLTYPE AddRef(void);

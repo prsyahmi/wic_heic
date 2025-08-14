@@ -9,7 +9,7 @@ private:
 
 public:
 	CHeifStreamReader(IStream* stream);
-	~CHeifStreamReader();
+	virtual ~CHeifStreamReader();
 
 	int64_t get_position() const override;
 	int read(void* data, size_t size) override;

@@ -8,7 +8,7 @@ public:
 
 public:
 	CComCounter();
-	~CComCounter();
+	virtual ~CComCounter();
 
 	static CComCounter& GetInstance() {
 		static CComCounter counter;

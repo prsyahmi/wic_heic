@@ -8,7 +8,7 @@ private:
 
 public:
 	CHeicMetadataQueryReader(heif::ImageHandle handle);
-	~CHeicMetadataQueryReader();
+	virtual ~CHeicMetadataQueryReader();
 
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject);
 	virtual ULONG STDMETHODCALLTYPE AddRef(void);
