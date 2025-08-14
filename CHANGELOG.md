@@ -1,3 +1,7 @@
+## v1.0.6 - 2025-08-14
+- Register .heic, .heif as file image type for explorer and thumbnail cache
+- Fix memory leaks
+
 ## v1.0.5 - 2025-08-13
 - Add installer
 
