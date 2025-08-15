@@ -15,6 +15,9 @@ CHeifStreamReader::CHeifStreamReader(IStream* stream)
 	if (S_OK == m_Stream->Stat(&st, STATFLAG_NONAME)) {
 		m_Size = st.cbSize.QuadPart;
 	}
+
+	ULARGE_INTEGER uli;
+	m_Stream->Seek({ 0 }, STREAM_SEEK_SET, &uli);
 }
 
 

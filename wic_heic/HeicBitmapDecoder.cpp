@@ -8,11 +8,13 @@ CHeicBitmapDecoder::CHeicBitmapDecoder()
 	: m_Count(1)
 	, m_Reader(nullptr)
 {
+	DbgLog("%s", __FUNCTION__);
 }
 
 
 CHeicBitmapDecoder::~CHeicBitmapDecoder()
 {
+	DbgLog("%s", __FUNCTION__);
 	if (m_Reader) {
 		delete m_Reader;
 	}
@@ -75,19 +77,31 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::Initialize(__RPC__in_opt IStream *
 	// https://github.com/strukturag/libheif/issues/83
 	try
 	{
+		DbgLog("%s: mReader=%p", __FUNCTION__, m_Reader);
 		if (m_Reader) {
 			return WINCODEC_ERR_WRONGSTATE;
 		}
 
+		STATSTG stat;
+		pIStream->Stat(&stat, STATFLAG_DEFAULT);
+		DbgLog("%s: filename=%ws", __FUNCTION__, stat.pwcsName);
+
 		m_Reader = new CHeifStreamReader(pIStream);
 		m_Context.read_from_reader(*m_Reader);
 	}
+	catch (const heif::Error& ex)
+	{
+		DbgLog("%s: heif exception %d, %d, %s", __FUNCTION__, ex.get_code(), ex.get_subcode(), ex.get_message());
+		return E_OUTOFMEMORY;
+	}
 	catch (const std::exception& ex)
 	{
+		DbgLog("%s: exception %s", __FUNCTION__, ex.what());
 		return E_OUTOFMEMORY;
 	}
 	catch (...)
 	{
+		DbgLog("%s: unknown exception", __FUNCTION__);
 		return E_OUTOFMEMORY;
 	}
 

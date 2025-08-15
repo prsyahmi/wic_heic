@@ -1,3 +1,6 @@
+## v1.0.7 - 2025-08-14
+- Fix opening on wine due to non-zero initial seek offset
+
 ## v1.0.6 - 2025-08-14
 - Register .heic, .heif as file image type for explorer and thumbnail cache
 - Fix memory leaks
