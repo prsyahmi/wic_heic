@@ -9,6 +9,7 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
 	, m_Bpp(0)
 	, m_PlaneInterleaved(nullptr)
 	, m_Stride(0)
+	, m_Decoded(false)
 {
 	int bpc = handle.get_chroma_bits_per_pixel();
 	if (bpc == -1) {
@@ -61,16 +62,8 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
 	m_PixelFormat = GUID_WICPixelFormat24bppRGB;
 	m_Bpp = 32;
 
-	// Set both to undefined to use original one
-	m_Image = handle.decode_image(heif_colorspace_RGB, m_chroma);
-	m_PlaneInterleaved = m_Image.get_plane2(heif_channel_interleaved, &m_Stride);
-
-	DbgLog("Decode: (chroma=%d, bpp=%d, bpc=%d, stride=%d)",
-		m_chroma, m_Bpp, bpc, m_Stride);
-
-	if (!m_PlaneInterleaved || !m_Stride) {
-		throw std::exception("Unable to get plane");
-	}
+	DbgLog("CHeicBitmapFrameDecode: (chroma=%d, bpp=%d, bpc=%d, w=%d, h=%d)",
+		m_chroma, m_Bpp, bpc, handle.get_width(), handle.get_height());
 }
 
 
@@ -161,6 +154,15 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPalette(__RPC__in_opt IWIC
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const WICRect *prc, UINT cbStride, UINT cbBufferSize, __RPC__out_ecount_full(cbBufferSize) BYTE *pbBuffer)
 {
+	try
+	{
+		DecodeImage();
+	}
+	catch (...)
+	{
+		return WINCODEC_ERR_BADIMAGE;
+	}
+
 	if (!pbBuffer) {
 		return E_INVALIDARG;
 	}
@@ -261,4 +263,22 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 	}
 
 	return S_OK;
+}
+
+void CHeicBitmapFrameDecode::DecodeImage()
+{
+	if (m_Decoded) return;
+
+	// Set both to undefined to use original one
+	m_Image = m_Handle.decode_image(heif_colorspace_RGB, m_chroma);
+	m_PlaneInterleaved = m_Image.get_plane2(heif_channel_interleaved, &m_Stride);
+
+	DbgLog("Decode: (chroma=%d, bpp=%d, stride=%d)",
+		m_chroma, m_Bpp, m_Stride);
+
+	if (!m_PlaneInterleaved || !m_Stride) {
+		throw std::exception("Unable to get plane");
+	}
+
+	m_Decoded = true;
 }

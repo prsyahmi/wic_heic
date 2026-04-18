@@ -11,6 +11,7 @@ private:
 	int m_Bpp;
 	size_t m_Stride;
 	uint8_t* m_PlaneInterleaved;
+	bool m_Decoded;
 
 public:
 	CHeicBitmapFrameDecode(heif::ImageHandle handle);
@@ -27,5 +28,7 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE GetMetadataQueryReader(__RPC__deref_out_opt IWICMetadataQueryReader **ppIMetadataQueryReader);
 	virtual HRESULT STDMETHODCALLTYPE GetColorContexts(UINT cCount, __RPC__inout_ecount_full_opt(cCount) IWICColorContext **ppIColorContexts, __RPC__out UINT *pcActualCount);
 	virtual HRESULT STDMETHODCALLTYPE GetThumbnail(__RPC__deref_out_opt IWICBitmapSource **ppIThumbnail);
+
+	void DecodeImage();
 };
 
