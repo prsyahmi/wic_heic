@@ -16,9 +16,4 @@ This software uses libheif (https://github.com/strukturag/libheif)
 - The resulting files will be at `(Build)\[ARCH]\[TARGET]\wic_heic.dll` or `(Build)\x86\Release\wic_heic.dll`
 
 ### Installation:
-- For now there is no installer
-- Download dll file from here: https://github.com/prsyahmi/wic_heic/releases
-- Copy *.dll files into folder of your choice
-- Open command as admin
-- Execute `_install.bat` or by directly `regsvr32.exe wic_heic.dll`
-- To uninstall execute `_uninstall.bat` or `regsvr32.exe /u wic_heic.dll`
+- Download msi installation from: https://github.com/prsyahmi/wic_heic/releases
