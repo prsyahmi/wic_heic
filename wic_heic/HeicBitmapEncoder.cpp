@@ -82,7 +82,30 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::GetContainerFormat(__RPC__out GUID
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::GetEncoderInfo(__RPC__deref_out_opt IWICBitmapEncoderInfo **ppIEncoderInfo)
 {
-	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
+	DbgLog("CHeicBitmapEncoder::GetEncoderInfo()");
+
+	if (!ppIEncoderInfo) {
+		return E_INVALIDARG;
+	}
+
+	HRESULT hr = S_OK;
+	IWICImagingFactory* pFactory = nullptr;
+	IWICComponentInfo* pCompInfo = nullptr;
+
+	hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pFactory));
+
+	if (SUCCEEDED(hr)) {
+		hr = pFactory->CreateComponentInfo(CLSID_HEICEncoder, &pCompInfo);
+	}
+
+	if (SUCCEEDED(hr)) {
+		hr = pCompInfo->QueryInterface(IID_IWICBitmapEncoderInfo, (void**)ppIEncoderInfo);
+	}
+
+	if (pFactory) pFactory->Release();
+	if (pCompInfo) pCompInfo->Release();
+
+	return hr;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::SetColorContexts(UINT cCount, __RPC__in_ecount_full(cCount) IWICColorContext **ppIColorContext)

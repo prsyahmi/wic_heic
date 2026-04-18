@@ -123,7 +123,29 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetContainerFormat(__RPC__out GUID
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetDecoderInfo(__RPC__deref_out_opt IWICBitmapDecoderInfo **ppIDecoderInfo)
 {
 	DbgLog("CHeicBitmapDecoder::GetDecoderInfo()");
-	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
+
+	if (!ppIDecoderInfo) {
+		return E_INVALIDARG;
+	}
+
+	HRESULT hr = S_OK;
+	IWICImagingFactory* pFactory = nullptr;
+	IWICComponentInfo* pCompInfo = nullptr;
+
+	hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pFactory));
+
+	if (SUCCEEDED(hr)) {
+		hr = pFactory->CreateComponentInfo(CLSID_HEICDecoder, &pCompInfo);
+	}
+
+	if (SUCCEEDED(hr)) {
+		hr = pCompInfo->QueryInterface(IID_IWICBitmapDecoderInfo, (void**)ppIDecoderInfo);
+	}
+
+	if (pFactory) pFactory->Release();
+	if (pCompInfo) pCompInfo->Release();
+
+	return hr;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::CopyPalette(__RPC__in_opt IWICPalette *pIPalette)
