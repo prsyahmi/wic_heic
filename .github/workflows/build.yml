@@ -45,6 +45,9 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
+    - name: Restore NuGet Packages
+      run: msbuild /t:Restore ${{env.SOLUTION_FILE_PATH}}
+
     - name: 3rd party build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       if: steps.cache-ext.outputs.cache-hit != 'true'
