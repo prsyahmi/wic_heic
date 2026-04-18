@@ -212,6 +212,10 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::WriteSource(__RPC__in_opt IWIC
 		WICPixelFormatGUID srcFormat;
 		IWICBitmapSource *pConverted = NULL;
 
+		if (!pIBitmapSource) {
+			return E_INVALIDARG;
+		}
+
 		CreateFrame();
 
 		uint8_t* data = m_Frame.get_plane(heif_channel_interleaved, &stride);
