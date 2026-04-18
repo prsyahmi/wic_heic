@@ -128,7 +128,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetDecoderInfo(__RPC__deref_out_op
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::CopyPalette(__RPC__in_opt IWICPalette *pIPalette)
 {
-	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
+	return WINCODEC_ERR_PALETTEUNAVAILABLE;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetMetadataQueryReader(__RPC__deref_out_opt IWICMetadataQueryReader **ppIMetadataQueryReader)
@@ -228,7 +228,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetThumbnail(__RPC__deref_out_opt 
 
 		std::vector<heif_item_id> thumbIds = handle.get_list_of_thumbnail_IDs();
 		if (!thumbIds.size()) {
-			return WINCODEC_ERR_FRAMEMISSING;
+			return WINCODEC_ERR_CODECNOTHUMBNAIL;
 		}
 
 		heif::ImageHandle thumbHandle = handle.get_thumbnail(thumbIds[0]);
@@ -252,17 +252,17 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetThumbnail(__RPC__deref_out_opt 
 	catch (const heif::Error& ex)
 	{
 		Log("GetThumbnail@Exception: %s", ex.get_message().c_str());
-		return WINCODEC_ERR_FRAMEMISSING;
+		return WINCODEC_ERR_CODECNOTHUMBNAIL;
 	}
 	catch (const std::exception& ex)
 	{
 		Log("GetThumbnail@Exception: %s", ex.what());
-		return E_INVALIDARG;
+		return WINCODEC_ERR_CODECNOTHUMBNAIL;
 	}
 	catch (...)
 	{
 		Log("GetThumbnail@Exception: Unknown");
-		return E_INVALIDARG;
+		return WINCODEC_ERR_CODECNOTHUMBNAIL;
 	}
 
 	return S_OK;
