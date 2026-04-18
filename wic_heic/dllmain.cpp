@@ -59,8 +59,8 @@ HRESULT RegisterDecoder(const std::wstring& dllPath)
 		regDecoder.CreateValue("SupportMultiframe", 1);
 		regDecoder.CreateValue("Author", "prsyahmi@github");
 		regDecoder.CreateValue("ContainerFormat", S_GUID_ContainerFormatHEIC);
-		regDecoder.CreateValue("Description", "HEIC Image Encoder");
-		regDecoder.CreateValue("FriendlyName", "HEIC Image Encoder");
+		regDecoder.CreateValue("Description", "HEIC Image Decoder");
+		regDecoder.CreateValue("FriendlyName", "HEIC Image Decoder");
 		regDecoder.CreateValue("FileExtensions", ".heic");
 		regDecoder.CreateValue("MimeTypes", "image/heic");
 		regDecoder.CreateValue("SpecVersion", "1.0.0.0");
