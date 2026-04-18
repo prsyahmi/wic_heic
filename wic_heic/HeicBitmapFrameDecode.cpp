@@ -220,12 +220,12 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 
 		std::vector<heif_item_id> ids = m_Handle.get_list_of_thumbnail_IDs();
 		if (!ids.size()) {
-			return WINCODEC_ERR_FRAMEMISSING;
+			return WINCODEC_ERR_CODECNOTHUMBNAIL;
 		}
 
 		heif::ImageHandle thumbHandle = m_Handle.get_thumbnail(ids[index]);
 		if (thumbHandle.empty()) {
-			return WINCODEC_ERR_FRAMEMISSING;
+			return WINCODEC_ERR_CODECNOTHUMBNAIL;
 		}
 
 		DbgLog("GetThumbnail@handle: hasAlpha=%d, chromaBpp=%d, lumaBpp=%d, width=%d, height=%d, primary=%d",
@@ -247,17 +247,17 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 	catch (const heif::Error& ex)
 	{
 		Log("GetThumbnail@Exception: %s", ex.get_message().c_str());
-		return E_INVALIDARG;
+		return WINCODEC_ERR_CODECNOTHUMBNAIL;
 	}
 	catch (const std::exception& ex)
 	{
 		Log("GetThumbnail@Exception: %s", ex.what());
-		return E_INVALIDARG;
+		return WINCODEC_ERR_CODECNOTHUMBNAIL;
 	}
 	catch (...)
 	{
 		Log("GetThumbnail@Exception: Unknown");
-		return E_INVALIDARG;
+		return WINCODEC_ERR_CODECNOTHUMBNAIL;
 	}
 
 	return S_OK;
