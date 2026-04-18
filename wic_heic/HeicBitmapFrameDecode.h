@@ -4,6 +4,7 @@ class CHeicBitmapFrameDecode : public IWICBitmapFrameDecode
 {
 private:
 	std::atomic<uint32_t> m_Count;
+	CHeicBitmapDecoder* m_pDecoder;
 	heif::ImageHandle m_Handle;
 	heif::Image m_Image;
 	heif_chroma m_chroma;
@@ -14,7 +15,7 @@ private:
 	bool m_Decoded;
 
 public:
-	CHeicBitmapFrameDecode(heif::ImageHandle handle);
+	CHeicBitmapFrameDecode(CHeicBitmapDecoder* decoder, heif::ImageHandle handle);
 	virtual ~CHeicBitmapFrameDecode();
 
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);

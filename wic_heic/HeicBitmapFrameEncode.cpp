@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "wic_heic.h"
 #include "HeicBitmapFrameEncode.h"
+#include "HeicBitmapEncoder.h"
 
 
-CHeicBitmapFrameEncode::CHeicBitmapFrameEncode()
+CHeicBitmapFrameEncode::CHeicBitmapFrameEncode(CHeicBitmapEncoder* pEncoder)
 	: m_Count(1)
+	, m_pEncoder(pEncoder)
 	, m_Width(0)
 	, m_Height(0)
 	, m_Chroma(heif_chroma_undefined)
@@ -12,11 +14,13 @@ CHeicBitmapFrameEncode::CHeicBitmapFrameEncode()
 	, m_Created(false)
 	, m_BitDepthPerChannel(8)
 {
+	if (m_pEncoder) m_pEncoder->AddRef();
 }
 
 
 CHeicBitmapFrameEncode::~CHeicBitmapFrameEncode()
 {
+	if (m_pEncoder) m_pEncoder->Release();
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::QueryInterface(REFIID riid, void **ppvObject)

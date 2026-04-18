@@ -201,7 +201,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetPreview(__RPC__deref_out_opt IW
 			thumbHandle.is_primary_image()
 		);
 
-		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(thumbHandle);
+		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(this, thumbHandle);
 		if (!decoder) {
 			return E_OUTOFMEMORY;
 		}
@@ -264,7 +264,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetThumbnail(__RPC__deref_out_opt 
 			thumbHandle.is_primary_image()
 		);
 
-		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(thumbHandle);
+		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(this, thumbHandle);
 		if (!decoder) {
 			return E_OUTOFMEMORY;
 		}
@@ -335,7 +335,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrame(UINT index, __RPC__deref_
 			handle.is_primary_image()
 		);
 
-		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(handle);
+		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(this, handle);
 		if (!decoder) {
 			return E_OUTOFMEMORY;
 		}

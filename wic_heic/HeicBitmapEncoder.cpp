@@ -136,7 +136,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::CreateNewFrame(__RPC__deref_out_op
 			return E_INVALIDARG;
 		}
 
-		CHeicBitmapFrameEncode* pFrame = new CHeicBitmapFrameEncode();
+		CHeicBitmapFrameEncode* pFrame = new CHeicBitmapFrameEncode(this);
 		*ppIFrameEncode = pFrame;
 
 		pFrame->AddRef();

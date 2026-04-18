@@ -1,16 +1,23 @@
 #include "stdafx.h"
 #include "wic_heic.h"
+#include "HeifStreamReader.h"
+#include "HeicBitmapDecoder.h"
 #include "HeicBitmapFrameDecode.h"
 
 
-CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
+CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(CHeicBitmapDecoder* decoder, heif::ImageHandle handle)
 	: m_Count(1)
+	, m_pDecoder(decoder)
 	, m_Handle(handle)
 	, m_Bpp(0)
 	, m_PlaneInterleaved(nullptr)
 	, m_Stride(0)
 	, m_Decoded(false)
 {
+	if (m_pDecoder) {
+		m_pDecoder->AddRef();
+	}
+
 	int bpc = handle.get_chroma_bits_per_pixel();
 	if (bpc == -1) {
 		bpc = handle.get_luma_bits_per_pixel();
@@ -69,6 +76,9 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(heif::ImageHandle handle)
 
 CHeicBitmapFrameDecode::~CHeicBitmapFrameDecode()
 {
+	if (m_pDecoder) {
+		m_pDecoder->Release();
+	}
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::QueryInterface(REFIID riid, void **ppvObject)
@@ -239,7 +249,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 			thumbHandle.is_primary_image()
 		);
 
-		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(thumbHandle);
+		CHeicBitmapFrameDecode* decoder = new(std::nothrow) CHeicBitmapFrameDecode(m_pDecoder, thumbHandle);
 		if (!decoder) {
 			return E_OUTOFMEMORY;
 		}
@@ -268,6 +278,10 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 void CHeicBitmapFrameDecode::DecodeImage()
 {
 	if (m_Decoded) return;
+
+	if (m_Handle.empty()) {
+		throw std::exception("Bad image handle");
+	}
 
 	// Set both to undefined to use original one
 	m_Image = m_Handle.decode_image(heif_colorspace_RGB, m_chroma);

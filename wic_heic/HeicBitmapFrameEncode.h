@@ -7,6 +7,7 @@ private:
 	friend class CHeicBitmapEncoder;
 
 	std::atomic<uint32_t> m_Count;
+	CHeicBitmapEncoder* m_pEncoder;
 	UINT m_Width, m_Height;
 	heif_chroma m_Chroma;
 	heif_colorspace m_Colorspace;
@@ -18,7 +19,7 @@ protected:
 	heif::Image m_Frame;
 
 public:
-	CHeicBitmapFrameEncode();
+	CHeicBitmapFrameEncode(CHeicBitmapEncoder* pEncoder);
 	virtual ~CHeicBitmapFrameEncode();
 
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
