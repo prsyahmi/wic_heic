@@ -1,10 +1,16 @@
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 	<Package Id="prsyahmi.WicHeic" Name="WicHeic" Manufacturer="WicHeic" Version="1.0.0">
 		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
-    <Media Id="1" Cabinet="WicHeic.cab" EmbedCab="yes"></Media>
+		<Media Id="1" Cabinet="WicHeic.cab" EmbedCab="yes"></Media>
+
+		<ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+		<UI>
+			<Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2" />
+			<Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" />
+		</UI>
 
 		<Feature Id="Main">
-      <ComponentGroupRef Id="WicHeic" Primary="yes" />
+			<ComponentGroupRef Id="WicHeic" Primary="yes" />
 		</Feature>
 	</Package>
 </Wix>
