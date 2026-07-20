@@ -81,6 +81,10 @@ jobs:
         path: ./(Build)
         retention-days: 1
 
+    - name: Zip build files
+      run: |
+        7z a -tzip WicHeic-${{ github.ref_name }}.zip (Build)/
+
     - name: Version Tagging
       if: github.ref_type == 'tag'
       run: |
@@ -95,3 +99,5 @@ jobs:
         files: |
           ./(Build)/x64/Release/en-US/wicheic_${{ github.ref_name }}-x64.msi
           ./(Build)/x86/Release/en-US/wicheic_${{ github.ref_name }}-x86.msi
+          ./(Build)/x86/Release/en-US/wicheic_${{ github.ref_name }}-x86.msi
+          *.zip
