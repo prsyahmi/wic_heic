@@ -87,7 +87,6 @@ jobs:
         echo "PREV_TAG=${PREV_TAG}" >> "$GITHUB_OUTPUT"
 
     - name: Version Tagging
-      if: github.ref_type == 'tag'
       run: |
         cd '.\Installer'
         $VER='${{ steps.version.outputs.THIS_VERSION }}'.Replace('v','')
