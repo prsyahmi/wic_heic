@@ -30,7 +30,7 @@
 void Log(const char* szFormat, ...);
 
 #if defined(_DEBUG) || defined(_DEBUG_P)
-#define DbgLog Log
+#define DbgLog(...) Log(__VA_ARGS__)
 #else
-#define DbgLog
+#define DbgLog(...) ((void)0)
 #endif
