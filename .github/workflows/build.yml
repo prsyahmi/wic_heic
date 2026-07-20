@@ -75,7 +75,7 @@ jobs:
         echo "Commits since first commit: ${COMMIT_SINCE_TAG}"
 
         # Determine final version
-        FINAL_VERSION="${BASE_VERSION%.*}.${COMMIT_SINCE_TAG}"
+        FINAL_VERSION="${BASE_VERSION}.${COMMIT_SINCE_TAG}"
 
         echo "Base version: ${BASE_VERSION}"
         echo "Prev version: ${PREV_TAG}"
