@@ -5,6 +5,8 @@ on:
     branches: [ "master" ]
     tags:
       - "v*.*.*"
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches: [ "master" ]
 
@@ -20,7 +22,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: 'true'
         fetch-tags: 'true'
@@ -56,11 +58,39 @@ jobs:
         cd .\wic_heic\3rdparty
         build.bat
 
+    - name: Determine version
+      id: version
+      shell: bash
+      run: |
+        # Get the most recent tag using git describe
+        BASE_TAG=$(git describe --tags --abbrev=0 --match="v[0-9]*.[0-9]*" --exclude="v[0-9]*.[0-9]*.[0-9]*")
+
+        # Remove 'v' prefix to get base version
+        BASE_VERSION="${BASE_TAG#v}"
+
+        PREV_TAG=$(git describe --tags --abbrev=0)
+
+        # Count commits since the tag
+        COMMIT_SINCE_TAG=$(git rev-list --count "${BASE_TAG}..HEAD")
+        echo "Commits since first commit: ${COMMIT_SINCE_TAG}"
+
+        # Determine final version
+        FINAL_VERSION="${BASE_VERSION%.*}.${COMMIT_SINCE_TAG}"
+
+        echo "Base version: ${BASE_VERSION}"
+        echo "Prev version: ${PREV_TAG}"
+        echo "This version: ${FINAL_VERSION}"
+
+        echo "THIS_VERSION=${FINAL_VERSION}" >> "$GITHUB_OUTPUT"
+        echo "BASE_TAG=${BASE_TAG}" >> "$GITHUB_OUTPUT"
+        echo "BASE_VERSION=${BASE_VERSION}" >> "$GITHUB_OUTPUT"
+        echo "PREV_TAG=${PREV_TAG}" >> "$GITHUB_OUTPUT"
+
     - name: Version Tagging
       if: github.ref_type == 'tag'
       run: |
         cd '.\Installer'
-        $VER='${{ github.ref_name }}'.Replace('v','')
+        $VER='${{ steps.version.outputs.THIS_VERSION }}'.Replace('v','')
         (Get-Content Package.wxs).Replace('1.0.0', $VER) | Set-Content Package.wxs
 
     - name: Build x86
@@ -82,22 +112,27 @@ jobs:
         retention-days: 1
 
     - name: Zip build files
+      if: ${{ github.event_name != 'pull_request' }}
+      shell: cmd
       run: |
-        7z a -tzip WicHeic-${{ github.ref_name }}.zip (Build)/
+        7z a -tzip WicHeic-${{ steps.version.outputs.THIS_VERSION }}.zip "(Build)/"
 
     - name: Version Tagging
-      if: github.ref_type == 'tag'
+      if: ${{ github.event_name != 'pull_request' }}
       run: |
-        Rename-Item -Path ".\(Build)\x64\Release\en-US\WicHeic.msi" -NewName "WicHeic_${{ github.ref_name }}-x64.msi"
-        Rename-Item -Path ".\(Build)\x86\Release\en-US\WicHeic.msi" -NewName "WicHeic_${{ github.ref_name }}-x86.msi"
+        Rename-Item -Path ".\(Build)\x64\Release\en-US\WicHeic.msi" -NewName "WicHeic_v${{ steps.version.outputs.THIS_VERSION }}-x64.msi"
+        Rename-Item -Path ".\(Build)\x86\Release\en-US\WicHeic.msi" -NewName "WicHeic_v${{ steps.version.outputs.THIS_VERSION }}-x86.msi"
 
     - name: Release
-      uses: softprops/action-gh-release@v2
-      if: github.ref_type == 'tag'
+      uses: softprops/action-gh-release@v3
+      if: ${{ github.event_name != 'pull_request' }}
       with:
+        tag_name: v${{ steps.version.outputs.THIS_VERSION }}
+        previous_tag: ${{ steps.version.outputs.PREV_TAG }}
         body_path: CHANGELOG_LATEST.md
         files: |
-          ./(Build)/x64/Release/en-US/wicheic_${{ github.ref_name }}-x64.msi
-          ./(Build)/x86/Release/en-US/wicheic_${{ github.ref_name }}-x86.msi
-          ./(Build)/x86/Release/en-US/wicheic_${{ github.ref_name }}-x86.msi
+          ./(Build)/x64/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-x64.msi
+          ./(Build)/x86/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-x86.msi
           *.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
