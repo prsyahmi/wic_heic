@@ -1,3 +1,7 @@
+## Next
+- Fix decoding bpp
+- Fix encoding WritePixels back to source buffer
+
 ## v1.0.8 - 2026-04-19
 - Fix palette and thumbnail return value
 - Implement GetDecoderInfo / GetIncoderInfo
