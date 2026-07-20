@@ -25,13 +25,13 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(CHeicBitmapDecoder* decoder, heif
 
 	m_chroma = heif_chroma_interleaved_RGB;
 	m_PixelFormat = GUID_WICPixelFormat24bppRGB;
-	m_Bpp = 32;
+	m_Bpp = 24;
 
 	if (bpc == 8 && !m_Handle.has_alpha_channel())
 	{
 		m_PixelFormat = GUID_WICPixelFormat24bppRGB;
 		m_chroma = heif_chroma_interleaved_RGB;
-		m_Bpp = 32;
+		m_Bpp = 24;
 	}
 	else if (bpc == 8 && m_Handle.has_alpha_channel())
 	{
@@ -67,7 +67,7 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(CHeicBitmapDecoder* decoder, heif
 	// No HDR support for now
 	m_chroma = heif_chroma_interleaved_RGB;
 	m_PixelFormat = GUID_WICPixelFormat24bppRGB;
-	m_Bpp = 32;
+	m_Bpp = 24;
 
 	DbgLog("CHeicBitmapFrameDecode: (chroma=%d, bpp=%d, bpc=%d, w=%d, h=%d)",
 		m_chroma, m_Bpp, bpc, handle.get_width(), handle.get_height());
@@ -192,16 +192,22 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const
 		cbStride, m_Stride, m_Bpp);
 
 	int bytesPerPixel = m_Bpp / 8;
+	UINT requiredSize = rc.Height * cbStride;
+	if (cbBufferSize < requiredSize) {
+		return E_INVALIDARG;
+	}
+
+	int offsetX = rc.X * bytesPerPixel;
+	int rowBytes = rc.Width * bytesPerPixel;
 
 	uint8_t* plane = m_PlaneInterleaved;
-	plane += (m_Stride * rc.Y);
+	plane += (m_Stride * rc.Y) + offsetX;
 
 	uint8_t* out = pbBuffer;
 
 	for (int height = 0; height < rc.Height; height++)
 	{
-		uint8_t offsetX = rc.X * bytesPerPixel;
-		memcpy_s(out, cbBufferSize - offsetX, plane + offsetX, cbStride - offsetX);
+		memcpy_s(out, cbBufferSize - (height * cbStride), plane, rowBytes);
 		out += cbStride;
 		plane += m_Stride;
 	}
