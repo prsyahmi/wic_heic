@@ -12,6 +12,7 @@ CHeicBitmapFrameEncode::CHeicBitmapFrameEncode(CHeicBitmapEncoder* pEncoder)
 	, m_Chroma(heif_chroma_undefined)
 	, m_Colorspace(heif_colorspace_RGB)
 	, m_Created(false)
+	, m_PixelFormat(GUID_WICPixelFormat24bppRGB)
 	, m_BitDepthPerChannel(8)
 {
 	if (m_pEncoder) m_pEncoder->AddRef();
@@ -170,26 +171,25 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::WritePixels(UINT lineCount, UI
 	try
 	{
 		// Untested
+		// Conversion
 
 		int stride;
-		UINT copyStride;
 
 		CreateFrame();
 
-		uint8_t* data = m_Frame.get_plane(heif_channel_interleaved, &stride);
-		if (!data) {
+		uint8_t* plane = m_Frame.get_plane(heif_channel_interleaved, &stride);
+		if (!plane) {
 			return E_OUTOFMEMORY;
 		}
 
-		copyStride = (UINT)stride > cbStride ? cbStride : stride;
+		int copyStride = stride > cbStride ? cbStride : stride;
 
-		uint8_t* dest = pbPixels;
 		UINT copied = 0;
 		for (UINT y = 0; y < lineCount; y++) {
-			memcpy_s(dest, cbBufferSize - (dest - pbPixels), data, copyStride);
+			memcpy_s(plane, stride, pbPixels, copyStride);
 
-			data += stride;
-			dest += cbStride;
+			plane += stride;
+			pbPixels += cbStride;
 		}
 	}
 	catch (const heif::Error& ex)
