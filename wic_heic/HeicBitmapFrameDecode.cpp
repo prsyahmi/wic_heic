@@ -86,7 +86,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::QueryInterface(REFIID riid, vo
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*ppvObject = nullptr;
@@ -125,7 +125,7 @@ ULONG STDMETHODCALLTYPE CHeicBitmapFrameDecode::Release(void)
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetSize(__RPC__out UINT *puiWidth, __RPC__out UINT *puiHeight)
 {
 	if (!puiWidth || !puiHeight) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*puiWidth = static_cast<UINT>(m_Handle.get_width());
@@ -137,7 +137,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetSize(__RPC__out UINT *puiWi
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetPixelFormat(__RPC__out WICPixelFormatGUID *pPixelFormat)
 {
 	if (!pPixelFormat) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	DbgLog("GetPixelFormat");
@@ -148,7 +148,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetPixelFormat(__RPC__out WICP
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetResolution(__RPC__out double *pDpiX, __RPC__out double *pDpiY)
 {
 	if (pDpiX == nullptr || pDpiY == nullptr) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*pDpiX = 96;
@@ -174,7 +174,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const
 	}
 
 	if (!pbBuffer) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	WICRect rc;
@@ -233,7 +233,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 		int index = 0;
 
 		if (!ppIThumbnail) {
-			return E_INVALIDARG;
+			return E_POINTER;
 		}
 
 		std::vector<heif_item_id> ids = m_Handle.get_list_of_thumbnail_IDs();

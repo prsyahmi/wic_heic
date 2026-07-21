@@ -40,7 +40,7 @@ HRESULT STDMETHODCALLTYPE CComFactory::QueryInterface(REFIID riid, void **ppvObj
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*ppvObject = nullptr;
@@ -64,7 +64,7 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*ppvObject = nullptr;
@@ -78,6 +78,7 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 		decoder->Release();
 
 		if (FAILED(hr)) {
+			*ppvObject = nullptr;
 			return hr;
 		}
 	} else if (IsEqualGUID(riid, IID_IWICBitmapEncoder)) {
@@ -90,6 +91,7 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 		encoder->Release();
 
 		if (FAILED(hr)) {
+			*ppvObject = nullptr;
 			return hr;
 		}
 	} else {

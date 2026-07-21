@@ -29,7 +29,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::QueryInterface(REFIID riid, vo
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*ppvObject = nullptr;
@@ -182,7 +182,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::WritePixels(UINT lineCount, UI
 			return E_OUTOFMEMORY;
 		}
 
-		int copyStride = stride > cbStride ? cbStride : stride;
+		UINT copyStride = (UINT)stride > cbStride ? cbStride : (UINT)stride;
 
 		UINT copied = 0;
 		for (UINT y = 0; y < lineCount; y++) {
@@ -217,7 +217,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameEncode::WriteSource(__RPC__in_opt IWIC
 		IWICBitmapSource *pConverted = NULL;
 
 		if (!pIBitmapSource) {
-			return E_INVALIDARG;
+			return E_POINTER;
 		}
 
 		CreateFrame();

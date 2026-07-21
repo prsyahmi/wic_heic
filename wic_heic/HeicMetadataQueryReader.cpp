@@ -12,7 +12,7 @@ public:
 		HRESULT hr = S_OK;
 
 		if (!ppvObject) {
-			return E_INVALIDARG;
+			return E_POINTER;
 		}
 
 		*ppvObject = nullptr;
@@ -81,7 +81,7 @@ HRESULT STDMETHODCALLTYPE CHeicMetadataQueryReader::QueryInterface(REFIID riid, 
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*ppvObject = nullptr;

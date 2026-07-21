@@ -28,7 +28,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::QueryInterface(REFIID riid, void *
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*ppvObject = nullptr;
@@ -73,7 +73,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::Initialize(__RPC__in_opt IStream *
 HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::GetContainerFormat(__RPC__out GUID *pguidContainerFormat)
 {
 	if (!pguidContainerFormat) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	*pguidContainerFormat = GUID_ContainerFormatHEIC;
@@ -85,7 +85,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::GetEncoderInfo(__RPC__deref_out_op
 	DbgLog("CHeicBitmapEncoder::GetEncoderInfo()");
 
 	if (!ppIEncoderInfo) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	HRESULT hr = S_OK;
@@ -133,7 +133,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapEncoder::CreateNewFrame(__RPC__deref_out_op
 	try
 	{
 		if (!ppIFrameEncode) {
-			return E_INVALIDARG;
+			return E_POINTER;
 		}
 
 		CHeicBitmapFrameEncode* pFrame = new CHeicBitmapFrameEncode(this);

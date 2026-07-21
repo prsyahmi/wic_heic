@@ -323,12 +323,13 @@ STDAPI DllUnregisterServer()
 	return S_OK;
 }
 
-STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppvObj)
+_Check_return_
+STDAPI DllGetClassObject(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID* ppvObj)
 {
 	HRESULT hr = E_OUTOFMEMORY;
 
 	if (!ppvObj) {
-		return E_INVALIDARG;
+		return E_POINTER;
 	}
 
 	if (!IsEqualGUID(riid, IID_IClassFactory)) {
@@ -357,7 +358,8 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppvObj)
 	return S_OK;
 }
 
-STDAPI DllCanUnloadNow()
+__control_entrypoint(DllExport)
+STDAPI DllCanUnloadNow(void)
 {
 	CComCounter& counter = CComCounter::GetInstance();
 	if (counter.m_ObjLock == 0 && counter.m_ServerLock == 0) {
