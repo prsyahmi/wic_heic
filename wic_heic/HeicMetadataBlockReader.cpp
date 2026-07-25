@@ -4,6 +4,141 @@
 #include <propvarutil.h>
 #pragma comment(lib, "Propsys.lib")
 
+
+class CEnumUnknown : public IEnumUnknown
+{
+private:
+    explicit CEnumUnknown(std::vector<IUnknown*> items)
+        : m_refCount(1)
+        , m_items(std::move(items))
+        , m_index(0)
+    {
+    }
+
+    ~CEnumUnknown()
+    {
+        for (IUnknown* p : m_items)
+        {
+            if (p) {
+                p->Release();
+            }
+        }
+    }
+
+    ULONG m_refCount;
+    std::vector<IUnknown*> m_items;
+    size_t m_index;
+
+public:
+    // Takes ownership of the references already held in items
+    // (i.e. caller should NOT Release() them after passing them in).
+    static HRESULT CreateInstance(std::vector<IUnknown*> items, IEnumUnknown** ppEnum)
+    {
+        if (!ppEnum)
+            return E_INVALIDARG;
+
+        *ppEnum = new (std::nothrow) CEnumUnknown(std::move(items));
+        return *ppEnum ? S_OK : E_OUTOFMEMORY;
+    }
+
+    // --- IUnknown ---
+
+    STDMETHODIMP QueryInterface(REFIID riid, void** ppv) override
+    {
+        if (!ppv)
+            return E_POINTER;
+
+        if (riid == IID_IUnknown || riid == IID_IEnumUnknown)
+        {
+            *ppv = static_cast<IEnumUnknown*>(this);
+            AddRef();
+            return S_OK;
+        }
+
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+
+    STDMETHODIMP_(ULONG) AddRef() override
+    {
+        return InterlockedIncrement(&m_refCount);
+    }
+
+    STDMETHODIMP_(ULONG) Release() override
+    {
+        ULONG c = InterlockedDecrement(&m_refCount);
+        if (c == 0)
+            delete this;
+        return c;
+    }
+
+    // --- IEnumUnknown ---
+
+    STDMETHODIMP Next(ULONG celt, IUnknown** rgelt, ULONG* pceltFetched) override
+    {
+        if (!rgelt)
+            return E_POINTER;
+
+        ULONG fetched = 0;
+        while (fetched < celt && m_index < m_items.size())
+        {
+            IUnknown* pItem = m_items[m_index];
+            pItem->AddRef();
+            rgelt[fetched] = pItem;
+            ++m_index;
+            ++fetched;
+        }
+
+        if (pceltFetched)
+            *pceltFetched = fetched;
+
+        for (ULONG i = fetched; i < celt; ++i)
+            rgelt[i] = nullptr;
+
+        return (fetched == celt) ? S_OK : S_FALSE;
+    }
+
+    STDMETHODIMP Skip(ULONG celt) override
+    {
+        size_t remaining = m_items.size() - m_index;
+        if (celt > remaining)
+        {
+            m_index = m_items.size();
+            return S_FALSE;
+        }
+        m_index += celt;
+        return S_OK;
+    }
+
+    STDMETHODIMP Reset() override
+    {
+        m_index = 0;
+        return S_OK;
+    }
+
+    STDMETHODIMP Clone(IEnumUnknown** ppEnum) override
+    {
+        if (!ppEnum)
+            return E_POINTER;
+
+        // Clone shares the same underlying objects; AddRef each for the new list.
+        std::vector<IUnknown*> cloned;
+        cloned.reserve(m_items.size());
+        for (IUnknown* p : m_items)
+        {
+            p->AddRef();
+            cloned.push_back(p);
+        }
+
+        HRESULT hr = CreateInstance(std::move(cloned), ppEnum);
+        if (SUCCEEDED(hr))
+        {
+            static_cast<CEnumUnknown*>(*ppEnum)->m_index = m_index;
+        }
+        return hr;
+    }
+};
+
 CHeicMetadataBlockReader::CHeicMetadataBlockReader(heif::ImageHandle handle)
 	: m_Handle(handle)
 {
@@ -138,7 +273,43 @@ HRESULT STDMETHODCALLTYPE CHeicMetadataBlockReader::GetReaderByIndex(UINT nIndex
 
 HRESULT STDMETHODCALLTYPE CHeicMetadataBlockReader::GetEnumerator(__RPC__deref_out_opt IEnumUnknown** ppIEnumMetadata)
 {
-	return E_NOTIMPL;
+    // This section is made by claude
+    DbgLog("%s (ppIMetadataReader=%p)", __FUNCTION__, ppIEnumMetadata);
+
+    if (!ppIEnumMetadata) {
+        return E_POINTER;
+    }
+
+    *ppIEnumMetadata = nullptr;
+
+    UINT cCount = 0;
+    HRESULT hr = GetCount(&cCount);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    std::vector<IUnknown*> items;
+    items.reserve(cCount);
+
+    for (UINT i = 0; i < cCount; ++i)
+    {
+        IWICMetadataReader* pReader = nullptr;
+        hr = GetReaderByIndex(i, &pReader);
+        if (FAILED(hr))
+        {
+            // Release anything already collected before bailing out.
+            for (IUnknown* p : items) {
+                p->Release();
+            }
+            return hr;
+        }
+
+        // pReader already holds the one reference GetReaderByIndex returned;
+        // CEnumUnknown takes ownership of it, so no extra AddRef here.
+        items.push_back(pReader);
+    }
+
+    return CEnumUnknown::CreateInstance(std::move(items), ppIEnumMetadata);
 }
 
 HRESULT STDMETHODCALLTYPE CHeicMetadataBlockReader::CreateQueryReader(IWICMetadataQueryReader** ppIQueryReader)
