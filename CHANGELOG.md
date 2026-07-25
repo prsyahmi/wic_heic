@@ -1,4 +1,10 @@
-## v1.1.6 - 2026-07-21
+## v1.1.14 - 2026-07-26
+- Add ARM64 build
+
+## v1.1.11 - 2026-07-26
+- Implement metadata reader
+
+## v1.1.8 - 2026-07-21
 - Fix issue reported by static code analysis 
 - log: Fix DbgLog leaves behind argument list on release build 
 
