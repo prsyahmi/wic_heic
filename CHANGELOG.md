@@ -1,5 +1,8 @@
-## v1.1.14 - 2026-07-26
+## v1.1.16 - 2026-07-26
 - Add ARM64 build
+- deps: kvazaar: https://github.com/ultravideo/kvazaar/commit/d6815293f34a094e26ba6c50b8644660ddc13e09
+- deps: libde265: https://github.com/strukturag/libde265/commit/4d45a6b36767318237771e1b3faf41773c4af4ad
+- deps: libheif: https://github.com/strukturag/libheif/commit/1a3583bcce77de6d3f8701c0758e3954863681ba
 
 ## v1.1.11 - 2026-07-26
 - Implement metadata reader
