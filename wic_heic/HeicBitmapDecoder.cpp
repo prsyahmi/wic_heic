@@ -277,7 +277,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrame(UINT index, __RPC__deref_
 {
 	try
 	{
-		Log("GetFrame: %d", index);
+		DbgLog("GetFrame: %d", index);
 
 		if (index >= (UINT)m_Context.get_number_of_top_level_images()) {
 			return WINCODEC_ERR_FRAMEMISSING;
