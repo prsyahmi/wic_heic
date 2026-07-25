@@ -198,7 +198,8 @@ HRESULT STDMETHODCALLTYPE CHeicMetadataBlockReader::GetContainerFormat(__RPC__ou
 		return E_POINTER;
 	}
 
-	*pguidContainerFormat = GUID_ContainerFormatHEIC;
+    *pguidContainerFormat = GUID_ContainerFormatJpeg;
+	//*pguidContainerFormat = GUID_ContainerFormatHEIC;
 	return S_OK;
 }
 
@@ -258,7 +259,7 @@ HRESULT STDMETHODCALLTYPE CHeicMetadataBlockReader::GetReaderByIndex(UINT nIndex
 	hr = pFactory->CreateMetadataReader(
 		metadataType,
 		nullptr,
-		0,
+        WICPersistOptionDefault,
 		pStream,
 		ppIMetadataReader
 	);

@@ -57,9 +57,6 @@
     <ClInclude Include="HeicException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HeicMetadataQueryReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="HeicMetadataBlockReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -102,9 +99,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HeicException.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HeicMetadataQueryReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HeicMetadataBlockReader.cpp">
