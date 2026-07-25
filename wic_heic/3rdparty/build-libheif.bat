@@ -4,14 +4,14 @@ setlocal
 rem Usage:
 rem   build-libheif x86
 rem   build-libheif x64
-rem   build-libheif x86 xp
-rem   build-libheif x64 xp
+rem   build-libheif ARM64
 
 set B_TMP=%1
 set B_OUT=%~dp0_out\%1
 set B_VC=Visual Studio 17 2022
 if "%1"=="x86" set B_BIT=Win32
 if "%1"=="x64" set B_BIT=x64
+if "%1"=="ARM64" set B_BIT=ARM64
 
 rem RELEASE = /O2 /Ob2 /DNDEBUG
 rem RELWITHDEBINFO = /Zi /O2 /Ob1 /DNDEBUG

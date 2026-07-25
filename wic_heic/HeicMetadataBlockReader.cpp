@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "wic_heic.h"
 #include "HeicMetadataBlockReader.h"
-#include <propvarutil.h>
-#pragma comment(lib, "Propsys.lib")
 
 
 class CEnumUnknown : public IEnumUnknown

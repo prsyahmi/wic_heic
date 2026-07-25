@@ -19,6 +19,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputName>WicHeic</OutputName>
+    <OutputPath>$(SolutionDir)(Build)\$(Platform)\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />

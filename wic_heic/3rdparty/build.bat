@@ -11,9 +11,12 @@ md _tmp 2> nul
 
 call build-libde265 x86
 call build-libde265 x64
+call build-libde265 ARM64
 call build-kvazaar x86
 call build-kvazaar x64
+call build-kvazaar ARM64
 call build-libheif x86
 call build-libheif x64
+call build-libheif ARM64
 
 pause

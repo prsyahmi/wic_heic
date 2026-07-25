@@ -104,6 +104,12 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 ${{env.SOLUTION_FILE_PATH}}
 
+    - name: Build ARM64
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=ARM64 ${{env.SOLUTION_FILE_PATH}}
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -121,6 +127,7 @@ jobs:
       run: |
         Rename-Item -Path ".\(Build)\x64\Release\en-US\WicHeic.msi" -NewName "WicHeic_v${{ steps.version.outputs.THIS_VERSION }}-x64.msi"
         Rename-Item -Path ".\(Build)\x86\Release\en-US\WicHeic.msi" -NewName "WicHeic_v${{ steps.version.outputs.THIS_VERSION }}-x86.msi"
+        Rename-Item -Path ".\(Build)\ARM64\Release\en-US\WicHeic.msi" -NewName "WicHeic_v${{ steps.version.outputs.THIS_VERSION }}-ARM64.msi"
 
     - name: Release
       uses: softprops/action-gh-release@v3
@@ -132,6 +139,7 @@ jobs:
         files: |
           ./(Build)/x64/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-x64.msi
           ./(Build)/x86/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-x86.msi
+          ./(Build)/x86/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-ARM64.msi
           *.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
