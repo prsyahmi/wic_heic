@@ -139,7 +139,7 @@ jobs:
         files: |
           ./(Build)/x64/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-x64.msi
           ./(Build)/x86/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-x86.msi
-          ./(Build)/x86/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-ARM64.msi
+          ./(Build)/ARM64/Release/en-US/wicheic_v${{ steps.version.outputs.THIS_VERSION }}-ARM64.msi
           *.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
