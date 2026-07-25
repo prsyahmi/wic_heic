@@ -9,6 +9,8 @@ private:
 public:
 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject)
 	{
+		DbgLog("%s", __FUNCTION__);
+
 		HRESULT hr = S_OK;
 
 		if (!ppvObject) {
@@ -33,11 +35,15 @@ public:
 
 	virtual ULONG STDMETHODCALLTYPE AddRef(void)
 	{
+		DbgLog("%s", __FUNCTION__);
+
 		return ++m_Count;
 	}
 
 	virtual ULONG STDMETHODCALLTYPE Release(void)
 	{
+		DbgLog("%s", __FUNCTION__);
+
 		uint32_t n = --m_Count;
 		if (m_Count == 0) {
 			delete this;
@@ -48,21 +54,29 @@ public:
 
 	virtual HRESULT STDMETHODCALLTYPE Next(ULONG celt, _Out_writes_to_(celt, *pceltFetched) LPOLESTR* rgelt, _Out_opt_ ULONG* pceltFetched)
 	{
+		DbgLog("%s", __FUNCTION__);
+
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Skip(ULONG celt)
 	{
+		DbgLog("%s", __FUNCTION__);
+
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Reset(void)
 	{
+		DbgLog("%s", __FUNCTION__);
+
 		return E_NOTIMPL;
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE Clone(__RPC__deref_out_opt IEnumString** ppenum)
 	{
+		DbgLog("%s", __FUNCTION__);
+
 		return E_NOTIMPL;
 	}
 };
@@ -70,14 +84,18 @@ public:
 CHeicMetadataQueryReader::CHeicMetadataQueryReader(heif::ImageHandle handle)
 	: m_Handle(handle)
 {
+	m_Handle.get_list_of_metadata_block_IDs();
+	DbgLog("%s", __FUNCTION__);
 }
 
 CHeicMetadataQueryReader::~CHeicMetadataQueryReader()
 {
+	DbgLog("%s", __FUNCTION__);
 }
 
 HRESULT STDMETHODCALLTYPE CHeicMetadataQueryReader::QueryInterface(REFIID riid, void** ppvObject)
 {
+	DbgLog("%s", __FUNCTION__);
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
@@ -102,11 +120,15 @@ HRESULT STDMETHODCALLTYPE CHeicMetadataQueryReader::QueryInterface(REFIID riid, 
 
 ULONG STDMETHODCALLTYPE CHeicMetadataQueryReader::AddRef(void)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return ++m_Count;
 }
 
 ULONG STDMETHODCALLTYPE CHeicMetadataQueryReader::Release(void)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	uint32_t n = --m_Count;
 	if (m_Count == 0) {
 		delete this;
@@ -117,20 +139,28 @@ ULONG STDMETHODCALLTYPE CHeicMetadataQueryReader::Release(void)
 
 HRESULT STDMETHODCALLTYPE CHeicMetadataQueryReader::GetContainerFormat(__RPC__out GUID* pguidContainerFormat)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return E_NOTIMPL;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicMetadataQueryReader::GetLocation(UINT cchMaxLength, __RPC__inout_ecount_full_opt(cchMaxLength) WCHAR* wzNamespace, __RPC__out UINT* pcchActualLength)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return E_NOTIMPL;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicMetadataQueryReader::GetMetadataByName(__RPC__in LPCWSTR wzName, __RPC__inout_opt PROPVARIANT* pvarValue)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return E_NOTIMPL;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicMetadataQueryReader::GetEnumerator(__RPC__deref_out_opt IEnumString** ppIEnumString)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return E_NOTIMPL;
 }

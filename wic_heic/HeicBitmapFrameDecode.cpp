@@ -3,7 +3,7 @@
 #include "HeifStreamReader.h"
 #include "HeicBitmapDecoder.h"
 #include "HeicBitmapFrameDecode.h"
-
+#include "HeicMetadataBlockReader.h"
 
 CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(CHeicBitmapDecoder* decoder, heif::ImageHandle handle)
 	: m_Count(1)
@@ -14,6 +14,8 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(CHeicBitmapDecoder* decoder, heif
 	, m_Stride(0)
 	, m_Decoded(false)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	if (m_pDecoder) {
 		m_pDecoder->AddRef();
 	}
@@ -76,6 +78,8 @@ CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(CHeicBitmapDecoder* decoder, heif
 
 CHeicBitmapFrameDecode::~CHeicBitmapFrameDecode()
 {
+	DbgLog("%s", __FUNCTION__);
+
 	if (m_pDecoder) {
 		m_pDecoder->Release();
 	}
@@ -83,6 +87,8 @@ CHeicBitmapFrameDecode::~CHeicBitmapFrameDecode()
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::QueryInterface(REFIID riid, void **ppvObject)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
@@ -109,11 +115,15 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::QueryInterface(REFIID riid, vo
 
 ULONG STDMETHODCALLTYPE CHeicBitmapFrameDecode::AddRef(void)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return ++m_Count;
 }
 
 ULONG STDMETHODCALLTYPE CHeicBitmapFrameDecode::Release(void)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	uint32_t n = --m_Count;
 	if (m_Count == 0) {
 		delete this;
@@ -124,6 +134,8 @@ ULONG STDMETHODCALLTYPE CHeicBitmapFrameDecode::Release(void)
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetSize(__RPC__out UINT *puiWidth, __RPC__out UINT *puiHeight)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	if (!puiWidth || !puiHeight) {
 		return E_POINTER;
 	}
@@ -136,17 +148,20 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetSize(__RPC__out UINT *puiWi
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetPixelFormat(__RPC__out WICPixelFormatGUID *pPixelFormat)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	if (!pPixelFormat) {
 		return E_POINTER;
 	}
 
-	DbgLog("GetPixelFormat");
 	*pPixelFormat = m_PixelFormat;
 	return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetResolution(__RPC__out double *pDpiX, __RPC__out double *pDpiY)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	if (pDpiX == nullptr || pDpiY == nullptr) {
 		return E_POINTER;
 	}
@@ -159,21 +174,27 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetResolution(__RPC__out doubl
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPalette(__RPC__in_opt IWICPalette *pIPalette)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return WINCODEC_ERR_PALETTEUNAVAILABLE;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const WICRect *prc, UINT cbStride, UINT cbBufferSize, __RPC__out_ecount_full(cbBufferSize) BYTE *pbBuffer)
 {
+	DbgLog("%s: (prc=%p, cbStride=%u, cbBufferSize=%u, pbBuffer=%p)", __FUNCTION__, prc, cbStride, cbBufferSize, pbBuffer);
+
 	try
 	{
 		DecodeImage();
 	}
 	catch (...)
 	{
+		DbgLog("%s: Exception", __FUNCTION__);
 		return WINCODEC_ERR_BADIMAGE;
 	}
 
 	if (!pbBuffer) {
+		DbgLog("%s: pbBuffer is null", __FUNCTION__);
 		return E_POINTER;
 	}
 
@@ -217,11 +238,25 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetMetadataQueryReader(__RPC__deref_out_opt IWICMetadataQueryReader **ppIMetadataQueryReader)
 {
-	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
+	DbgLog("%s", __FUNCTION__);
+
+	if (!ppIMetadataQueryReader) {
+		return E_POINTER;
+	}
+
+	CHeicMetadataBlockReader* pMetadataBlockReader = new(std::nothrow) CHeicMetadataBlockReader(this->m_Handle);
+	if (!pMetadataBlockReader) {
+		return E_OUTOFMEMORY;
+	}
+
+	HRESULT hr = pMetadataBlockReader->CreateQueryReader(ppIMetadataQueryReader);
+	return hr;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetColorContexts(UINT cCount, __RPC__inout_ecount_full_opt(cCount) IWICColorContext **ppIColorContexts, __RPC__out UINT *pcActualCount)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
 }
 
@@ -283,6 +318,8 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetThumbnail(__RPC__deref_out_
 
 void CHeicBitmapFrameDecode::DecodeImage()
 {
+	DbgLog("%s", __FUNCTION__);
+
 	if (m_Decoded) return;
 
 	if (m_Handle.empty()) {

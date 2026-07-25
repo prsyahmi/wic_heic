@@ -13,6 +13,7 @@ void ConvertToHeic(const std::wstring& srcFile, const std::wstring& destFile)
 	CComPtr<IWICBitmapEncoder> pEncoder;
 	CComPtr<IWICFormatConverter> pConvertedFrame;
 	CComPtr<IWICStream> pStream;
+	CComPtr<IWICBitmapEncoderInfo> pEncInfo;
 	UINT nFrame;
 
 	HRESULT hr = CoCreateInstance(
@@ -34,6 +35,20 @@ void ConvertToHeic(const std::wstring& srcFile, const std::wstring& destFile)
 	hr = pFactory->CreateStream(&pStream);
 	if (FAILED(hr)) {
 		throw std::exception("Failed to CreateStream");
+	}
+
+	hr = pEncoder->GetEncoderInfo(&pEncInfo);
+	if (SUCCEEDED(hr)) {
+		TCHAR friendlyName[64] = {};
+		UINT nActual = 0;
+		hr = pEncInfo->GetFriendlyName(64, friendlyName, &nActual);
+
+		if (SUCCEEDED(hr)) {
+			printf("Encoder Info: %ws\n", friendlyName);
+		}
+	}
+	if (FAILED(hr)) {
+		printf("Encoder Info: Error %x\n", hr);
 	}
 
 	hr = pFactory->CreateDecoderFromFilename(
@@ -63,6 +78,8 @@ void ConvertToHeic(const std::wstring& srcFile, const std::wstring& destFile)
 	if (FAILED(hr)) {
 		throw std::exception("Failed to GetFrameCount");
 	}
+
+	printf("Total Frames: %d\n", nFrame);
 
 	for (UINT i = 0; i < nFrame; i++)
 	{

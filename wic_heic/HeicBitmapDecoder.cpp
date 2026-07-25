@@ -22,6 +22,8 @@ CHeicBitmapDecoder::~CHeicBitmapDecoder()
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::QueryInterface(REFIID riid, void **ppvObject)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	HRESULT hr = S_OK;
 
 	if (!ppvObject) {
@@ -46,11 +48,15 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::QueryInterface(REFIID riid, void *
 
 ULONG STDMETHODCALLTYPE CHeicBitmapDecoder::AddRef(void)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return ++m_Count;
 }
 
 ULONG STDMETHODCALLTYPE CHeicBitmapDecoder::Release(void)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	uint32_t n = --m_Count;
 	if (m_Count == 0) {
 		delete this;
@@ -61,7 +67,7 @@ ULONG STDMETHODCALLTYPE CHeicBitmapDecoder::Release(void)
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::QueryCapability(__RPC__in_opt IStream *pIStream, __RPC__out DWORD *pdwCapability)
 {
-	DbgLog("CHeicBitmapDecoder::QueryCapability()");
+	DbgLog("%s", __FUNCTION__);
 
 	// https://learn.microsoft.com/en-us/windows/win32/wic/-wic-imp-iwicbitmapdecoder
 	if (!pdwCapability) {
@@ -77,9 +83,13 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::Initialize(__RPC__in_opt IStream *
 	// https://github.com/strukturag/libheif/issues/83
 	try
 	{
-		DbgLog("%s: mReader=%p", __FUNCTION__, m_Reader);
+		DbgLog("%s: pIStream=%p, mReader=%p", __FUNCTION__, pIStream, m_Reader);
 		if (m_Reader) {
 			return WINCODEC_ERR_WRONGSTATE;
+		}
+
+		if (!pIStream) {
+			return E_INVALIDARG;
 		}
 
 		STATSTG stat;
@@ -110,7 +120,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::Initialize(__RPC__in_opt IStream *
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetContainerFormat(__RPC__out GUID *pguidContainerFormat)
 {
-	DbgLog("CHeicBitmapDecoder::GetContainerFormat()");
+	DbgLog("%s", __FUNCTION__);
 
 	if (!pguidContainerFormat) {
 		return E_POINTER;
@@ -122,7 +132,7 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetContainerFormat(__RPC__out GUID
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetDecoderInfo(__RPC__deref_out_opt IWICBitmapDecoderInfo **ppIDecoderInfo)
 {
-	DbgLog("CHeicBitmapDecoder::GetDecoderInfo()");
+	DbgLog("%s", __FUNCTION__);
 
 	if (!ppIDecoderInfo) {
 		return E_POINTER;
@@ -150,23 +160,41 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetDecoderInfo(__RPC__deref_out_op
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::CopyPalette(__RPC__in_opt IWICPalette *pIPalette)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return WINCODEC_ERR_PALETTEUNAVAILABLE;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetMetadataQueryReader(__RPC__deref_out_opt IWICMetadataQueryReader **ppIMetadataQueryReader)
 {
-	DbgLog("CHeicBitmapDecoder::GetMetadataQueryReader()");
+	DbgLog("%s", __FUNCTION__);
+
+	if (!ppIMetadataQueryReader) {
+		return E_POINTER;
+	}
+
+	*ppIMetadataQueryReader = nullptr;
+
 	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetPreview(__RPC__deref_out_opt IWICBitmapSource **ppIBitmapSource)
 {
-	DbgLog("CHeicBitmapDecoder::GetPreview()");
+	DbgLog("%s", __FUNCTION__);
+
+	if (!ppIBitmapSource) {
+		return E_POINTER;
+	}
+
+	*ppIBitmapSource = nullptr;
+
 	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
 }
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetColorContexts(UINT cCount, __RPC__inout_ecount_full_opt(cCount) IWICColorContext **ppIColorContexts, __RPC__out UINT *pcActualCount)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	return WINCODEC_ERR_UNSUPPORTEDOPERATION;
 }
 
@@ -230,6 +258,8 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetThumbnail(__RPC__deref_out_opt 
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::GetFrameCount(__RPC__out UINT *pCount)
 {
+	DbgLog("%s", __FUNCTION__);
+
 	if (!pCount) {
 		return E_POINTER;
 	}

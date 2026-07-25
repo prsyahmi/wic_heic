@@ -12,7 +12,9 @@
 #include <windows.h>
 #include <unknwn.h>
 #include <wincodec.h>
+#include <wincodecsdk.h>
 #include <Shlobj.h>
+#include <shlwapi.h>
 
 #include <cstdint>
 #include <atomic>
@@ -26,6 +28,7 @@
 #pragma warning(pop)
 
 #pragma comment (lib, "windowscodecs.lib")
+#pragma comment (lib, "Shlwapi.lib")
 
 void Log(const char* szFormat, ...);
 

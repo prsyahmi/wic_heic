@@ -60,6 +60,9 @@
     <ClInclude Include="HeicMetadataQueryReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HeicMetadataBlockReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -102,6 +105,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HeicMetadataQueryReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HeicMetadataBlockReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
