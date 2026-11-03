@@ -17,3 +17,11 @@ This software uses libheif (https://github.com/strukturag/libheif)
 
 ### Installation:
 - Download msi installation from: https://github.com/prsyahmi/wic_heic/releases
+
+
+### Optional hardened x64 Photos opener
+
+For a local PNG handoff into Microsoft Photos, see
+[tools/photos-opener](tools/photos-opener/README.md). The optional build uses
+updated pinned decoder libraries, resource limits, bounds checks, and a
+separate per-user codec identity.

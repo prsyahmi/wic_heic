@@ -68,6 +68,7 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 	}
 
 	*ppvObject = nullptr;
+	if (pUnkOuter) return CLASS_E_NOAGGREGATION;
 	if (IsEqualGUID(riid, IID_IWICBitmapDecoder)) {
 		CHeicBitmapDecoder* decoder = new(std::nothrow) CHeicBitmapDecoder();
 		if (!decoder) {
@@ -81,7 +82,9 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 			*ppvObject = nullptr;
 			return hr;
 		}
-	} else if (IsEqualGUID(riid, IID_IWICBitmapEncoder)) {
+	}
+#ifndef WIC_LOCAL_DECODE_ONLY
+	else if (IsEqualGUID(riid, IID_IWICBitmapEncoder)) {
 		CHeicBitmapEncoder* encoder = new(std::nothrow) CHeicBitmapEncoder();
 		if (!encoder) {
 			return E_OUTOFMEMORY;
@@ -94,7 +97,9 @@ HRESULT STDMETHODCALLTYPE CComFactory::CreateInstance(_In_opt_ IUnknown *pUnkOut
 			*ppvObject = nullptr;
 			return hr;
 		}
-	} else {
+	}
+#endif
+	else {
 		hr = E_NOINTERFACE;
 	}
 

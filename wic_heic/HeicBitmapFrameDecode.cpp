@@ -4,6 +4,7 @@
 #include "HeicBitmapDecoder.h"
 #include "HeicBitmapFrameDecode.h"
 #include "HeicMetadataBlockReader.h"
+#include "PixelCopy.h"
 
 CHeicBitmapFrameDecode::CHeicBitmapFrameDecode(CHeicBitmapDecoder* decoder, heif::ImageHandle handle)
 	: m_Count(1)
@@ -179,63 +180,25 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPalette(__RPC__in_opt IWIC
 	return WINCODEC_ERR_PALETTEUNAVAILABLE;
 }
 
-HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(__RPC__in_opt const WICRect *prc, UINT cbStride, UINT cbBufferSize, __RPC__out_ecount_full(cbBufferSize) BYTE *pbBuffer)
+HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::CopyPixels(const WICRect* prc, UINT cbStride, UINT cbBufferSize, BYTE* pbBuffer)
 {
-	DbgLog("%s: (prc=%p, cbStride=%u, cbBufferSize=%u, pbBuffer=%p)", __FUNCTION__, prc, cbStride, cbBufferSize, pbBuffer);
-
-	try
-	{
-		DecodeImage();
-	}
-	catch (...)
-	{
-		DbgLog("%s: Exception", __FUNCTION__);
-		return WINCODEC_ERR_BADIMAGE;
-	}
-
-	if (!pbBuffer) {
-		DbgLog("%s: pbBuffer is null", __FUNCTION__);
-		return E_POINTER;
-	}
-
-	WICRect rc;
-	rc.X = 0;
-	rc.Y = 0;
-	rc.Width = m_Handle.get_width();
-	rc.Height = m_Handle.get_height();
-
-	if (prc) {
-		rc = *prc;
-	}
-
-	DbgLog("CopyPixels: (X=%d,Y=%d,W=%d,H=%d), outStride=%u, inStride=%d, bpp=%d",
-		rc.X, rc.Y, rc.Width, rc.Height,
-		cbStride, m_Stride, m_Bpp);
-
-	int bytesPerPixel = m_Bpp / 8;
-	UINT requiredSize = rc.Height * cbStride;
-	if (cbBufferSize < requiredSize) {
-		return E_INVALIDARG;
-	}
-
-	int offsetX = rc.X * bytesPerPixel;
-	int rowBytes = rc.Width * bytesPerPixel;
-
-	uint8_t* plane = m_PlaneInterleaved;
-	plane += (m_Stride * rc.Y) + offsetX;
-
-	uint8_t* out = pbBuffer;
-
-	for (int height = 0; height < rc.Height; height++)
-	{
-		memcpy_s(out, cbBufferSize - (height * cbStride), plane, rowBytes);
-		out += cbStride;
-		plane += m_Stride;
-	}
-
-	return S_OK;
+    if (!pbBuffer) return E_POINTER;
+    try {
+        DecodeImage();
+        return CopyValidatedPixels(m_PlaneInterleaved, m_Stride, m_Handle.get_width(),
+            m_Handle.get_height(), m_Bpp/8, prc, cbStride, cbBufferSize, pbBuffer);
+    } catch (...) { return WINCODEC_ERR_BADIMAGE; }
 }
 
+#ifdef WIC_LOCAL_DECODE_ONLY
+HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetMetadataQueryReader(IWICMetadataQueryReader** reader)
+{
+    if (!reader) return E_POINTER;
+    *reader = nullptr;
+    return WINCODEC_ERR_UNSUPPORTEDOPERATION;
+}
+
+#else
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetMetadataQueryReader(__RPC__deref_out_opt IWICMetadataQueryReader **ppIMetadataQueryReader)
 {
 	DbgLog("%s", __FUNCTION__);
@@ -252,6 +215,8 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetMetadataQueryReader(__RPC__
 	HRESULT hr = pMetadataBlockReader->CreateQueryReader(ppIMetadataQueryReader);
 	return hr;
 }
+
+#endif
 
 HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetColorContexts(UINT cCount, __RPC__inout_ecount_full_opt(cCount) IWICColorContext **ppIColorContexts, __RPC__out UINT *pcActualCount)
 {
@@ -333,7 +298,10 @@ void CHeicBitmapFrameDecode::DecodeImage()
 	DbgLog("Decode: (chroma=%d, bpp=%d, stride=%d)",
 		m_chroma, m_Bpp, m_Stride);
 
-	if (!m_PlaneInterleaved || !m_Stride) {
+	if (!m_PlaneInterleaved || !m_Stride ||
+        m_Image.get_width(heif_channel_interleaved) != m_Handle.get_width() ||
+        m_Image.get_height(heif_channel_interleaved) != m_Handle.get_height() ||
+        uint64_t(m_Handle.get_width()) * (m_Bpp/8) > m_Stride) {
 		throw std::exception("Unable to get plane");
 	}
 

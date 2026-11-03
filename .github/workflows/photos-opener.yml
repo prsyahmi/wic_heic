@@ -1,0 +1,26 @@
+name: Photos opener
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'fix/heic-security-and-photos-opener'
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Build codec, test and package the Photos opener
+        run: python tools/photos-opener/build.py --all
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WicHeic-Photos-Opener-x64
+          path: build/photos-opener/WicHeic-Photos-Opener-x64.zip
+          if-no-files-found: error

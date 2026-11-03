@@ -245,6 +245,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HeicMetadataBlockReader.h" />
+    <ClInclude Include="PixelCopy.h" />
+    <ClInclude Include="BoundedHeifContext.h" />
     <ClInclude Include="ComCounter.h" />
     <ClInclude Include="ComFactory.h" />
     <ClInclude Include="HeicBitmapDecoder.h" />
