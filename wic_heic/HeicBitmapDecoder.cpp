@@ -3,17 +3,28 @@
 #include "HeifStreamReader.h"
 #include "HeicBitmapDecoder.h"
 #include "HeicBitmapFrameDecode.h"
+#include "ComCounter.h"
 
 CHeicBitmapDecoder::CHeicBitmapDecoder()
 	: m_Count(1)
 	, m_Reader(nullptr)
 {
 	DbgLog("%s", __FUNCTION__);
+	auto* limits = heif_context_get_security_limits(m_Context.native_context());
+	if (!limits) throw std::bad_alloc();
+	limits->max_image_size_pixels = 100000000;
+	limits->max_number_of_tiles = 4096;
+	limits->max_items = 4096;
+	limits->max_memory_block_size = 512ULL * 1024 * 1024;
+	limits->max_total_memory = 1024ULL * 1024 * 1024;
+	limits->max_sequence_frames = 256;
+    CComCounter::GetInstance().m_ObjLock++;
 }
 
 
 CHeicBitmapDecoder::~CHeicBitmapDecoder()
 {
+    CComCounter::GetInstance().m_ObjLock--;
 	DbgLog("%s", __FUNCTION__);
 	if (m_Reader) {
 		delete m_Reader;
@@ -92,27 +103,23 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapDecoder::Initialize(__RPC__in_opt IStream *
 			return E_INVALIDARG;
 		}
 
-		STATSTG stat;
-		pIStream->Stat(&stat, STATFLAG_DEFAULT);
-		DbgLog("%s: filename=%ws", __FUNCTION__, stat.pwcsName);
-
 		m_Reader = new CHeifStreamReader(pIStream);
 		m_Context.read_from_reader(*m_Reader);
 	}
 	catch (const heif::Error& ex)
 	{
 		DbgLog("%s: heif exception %d, %d, %s", __FUNCTION__, ex.get_code(), ex.get_subcode(), ex.get_message());
-		return E_OUTOFMEMORY;
+		return WINCODEC_ERR_BADIMAGE;
 	}
 	catch (const std::exception& ex)
 	{
 		DbgLog("%s: exception %s", __FUNCTION__, ex.what());
-		return E_OUTOFMEMORY;
+		return WINCODEC_ERR_BADIMAGE;
 	}
 	catch (...)
 	{
 		DbgLog("%s: unknown exception", __FUNCTION__);
-		return E_OUTOFMEMORY;
+		return WINCODEC_ERR_BADIMAGE;
 	}
 
 	return S_OK;

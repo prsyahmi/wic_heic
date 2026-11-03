@@ -75,8 +75,8 @@ HRESULT RegisterDecoder(const std::wstring& dllPath)
 		regDecoder.CreateKeyTree(HKEY_CLASSES_ROOT, "CLSID\\" S_CLSID_HEICDecoder "\\Formats\\{6fddc324-4e03-4bfe-b185-3d77768dc90d}");
 
 		struct TPattern {
-			char* Mask;
-			char* Pattern;
+			const char* Mask;
+			const char* Pattern;
 			DWORD Size;
 			DWORD Offset;
 		};
@@ -298,10 +298,10 @@ STDAPI DllRegisterServer()
 		return hr;
 	}
 
+#ifndef WIC_LOCAL_DECODE_ONLY
 	hr = RegisterEncoder(dllPath);
-	if (hr != S_OK) {
-		return hr;
-	}
+	if (hr != S_OK) return hr;
+#endif
 
 	hr = RegisterFiletype(dllPath);
 	if (hr != S_OK) {
@@ -332,13 +332,17 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID
 		return E_POINTER;
 	}
 
-	if (!IsEqualGUID(riid, IID_IClassFactory)) {
+	if (!IsEqualGUID(riid, IID_IClassFactory) && !IsEqualGUID(riid, IID_IUnknown)) {
 		return E_INVALIDARG;
 	}
 
 	*ppvObj = NULL;
 
-	if (IsEqualCLSID(rclsid, CLSID_HEICDecoder) || IsEqualCLSID(rclsid, CLSID_HEICEncoder)) {
+	if (IsEqualCLSID(rclsid, CLSID_HEICDecoder)
+#ifndef WIC_LOCAL_DECODE_ONLY
+        || IsEqualCLSID(rclsid, CLSID_HEICEncoder)
+#endif
+    ) {
 		CComFactory *pClassFactory = new CComFactory();
 		if (pClassFactory)
 		{
@@ -355,7 +359,7 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID
 		return CLASS_E_CLASSNOTAVAILABLE;
 	}
 
-	return S_OK;
+	return hr;
 }
 
 __control_entrypoint(DllExport)

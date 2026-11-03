@@ -19,3 +19,6 @@ ipch
 *.pdb
 out-*.heic
 Installer/obj
+
+/build/
+__pycache__/
