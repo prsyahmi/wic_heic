@@ -138,7 +138,8 @@ public:
 };
 
 CHeicMetadataBlockReader::CHeicMetadataBlockReader(heif::ImageHandle handle)
-	: m_Handle(handle)
+	: m_Count(1)
+	, m_Handle(handle)
 {
 	m_MetadataBlock = m_Handle.get_list_of_metadata_block_IDs();
 }
@@ -238,7 +239,11 @@ HRESULT STDMETHODCALLTYPE CHeicMetadataBlockReader::GetReaderByIndex(UINT nIndex
 		payloadOffset = 4;
 		metadataType = GUID_MetadataFormatApp1;
 	}
-
+	// A malformed file can carry an Exif block shorter than its 4-byte header;
+	// without this check, buffer.size() - payloadOffset wraps around.
+	if (buffer.size() <= payloadOffset) {
+		return WINCODEC_ERR_BADMETADATAHEADER;
+	}
 	IStream* pStream = SHCreateMemStream(buffer.data() + payloadOffset, static_cast<UINT>(buffer.size() - payloadOffset));
 	if (!pStream) {
 		return E_OUTOFMEMORY;
@@ -265,6 +270,7 @@ HRESULT STDMETHODCALLTYPE CHeicMetadataBlockReader::GetReaderByIndex(UINT nIndex
 	DbgLog("%s -> hr=0x%08X, *ppIMetadataReader=%p, totalBlock=%d, payloadSize=%d, payloadOffset=%d", __FUNCTION__,
 		hr, *ppIMetadataReader, (int)m_MetadataBlock.size(), (int)buffer.size(), (int)payloadOffset);
 
+	pFactory->Release();
 	pStream->Release();
 
 	return hr;
@@ -336,3 +342,4 @@ HRESULT STDMETHODCALLTYPE CHeicMetadataBlockReader::CreateQueryReader(IWICMetada
 
 	return hr;
 }
+
