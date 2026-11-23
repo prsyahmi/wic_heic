@@ -142,12 +142,9 @@ HRESULT RegisterDecoder(const std::wstring& dllPath)
 				8,
 				4
 			},
-			{
-				"\xff\xff\xff\xff\xff\xff\xff\xff",
-				"ftypavif", // AV1 image
-				8,
-				4
-			},
+			// No "ftypavif" pattern: libheif is built without an AV1 decoder,
+			// so claiming AVIF files would stop other installed AVIF codecs
+			// (e.g. Microsoft's AV1 Video Extension) from decoding them.
 		};
 
 		for (size_t i = 0; i < _countof(patterns); i++) {
@@ -368,3 +365,4 @@ STDAPI DllCanUnloadNow(void)
 
 	return S_FALSE;
 }
+
