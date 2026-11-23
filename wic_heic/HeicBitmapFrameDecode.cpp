@@ -250,6 +250,9 @@ HRESULT STDMETHODCALLTYPE CHeicBitmapFrameDecode::GetMetadataQueryReader(__RPC__
 	}
 
 	HRESULT hr = pMetadataBlockReader->CreateQueryReader(ppIMetadataQueryReader);
+	// The query reader holds its own reference to the block reader; drop ours
+	// so the block reader is freed when the caller releases the query reader.
+	pMetadataBlockReader->Release();
 	return hr;
 }
 
@@ -339,3 +342,4 @@ void CHeicBitmapFrameDecode::DecodeImage()
 
 	m_Decoded = true;
 }
+
